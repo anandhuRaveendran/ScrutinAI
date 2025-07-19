@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import WalletConnect from '../../Components/Shared/WalletConnect';
+import AuditReportModal from '../../Components/Modal/AuditReportModal';
 
 const Audit = () => {
   const [contract, setContract] = useState('');
   const [report, setReport] = useState(null);
   const [fileName, setFileName] = useState('');
+  const [showModal, setShowModal] = useState(false);
 
   const handleAudit = () => {
     setReport({
+      summary: `This Solidity smart contract provides a mechanism to mint an ERC721 for a membership into a particular organization or club. ...`,
       issues: [
         { severity: 'High', desc: 'Reentrancy vulnerability in withdraw()' },
         { severity: 'Medium', desc: 'Unrestricted write to storage variable' },
@@ -18,6 +21,7 @@ const Audit = () => {
       ],
       score: 85,
     });
+    setShowModal(true);
   };
 
   const handleFileChange = async (e) => {
@@ -64,31 +68,14 @@ const Audit = () => {
         onClick={handleAudit}
         disabled={!contract}
       >
-        Scan with AI
+        Audit with AI
       </button>
 
-      {report && (
-        <div className="mt-8 bg-[#1A2536] rounded-lg p-6">
-          <h3 className="text-xl text-white font-semibold mb-2">Audit Report</h3>
-          <div className="mb-2 text-yellow-400">Score: {report.score}</div>
-          <div className="mb-2">
-            <span className="text-white font-semibold">Issues:</span>
-            <ul className="list-disc ml-6">
-              {report.issues.map((issue, i) => (
-                <li key={i} className={issue.severity === 'High' ? 'text-red-400' : 'text-yellow-300'}>
-                  [{issue.severity}] {issue.desc}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <span className="text-white font-semibold">Suggestions:</span>
-            <ul className="list-disc ml-6 text-blue-300">
-              {report.suggestions.map((s, i) => <li key={i}>{s}</li>)}
-            </ul>
-          </div>
-        </div>
-      )}
+      <AuditReportModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        report={report}
+      />
     </div>
   );
 };

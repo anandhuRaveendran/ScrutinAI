@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import HomeImage from '../../../public/Images/Home2.png';
+import HomeImage from '../../assets/Images/Home2.png';
 
 const features = [
   {
@@ -66,9 +66,10 @@ const Home = () => (
       <div className="flex-1 flex justify-center mt-12 md:mt-0">
         <img
           // src="https://i.ibb.co/6bQ7Q6d/shield-logo.png" // 
-          src={HomeImage} 
+          src = "https://cdn-hnddh.nitrocdn.com/KqRjbeIbVVaUkfyLngjfpxqYLCgqfSCV/assets/images/optimized/rev-280072d/blocktunix.com/wp-content/uploads/2023/07/adt_bnr2x.png"
+          // src={HomeImage} 
           alt="Shield Logo"
-          className="w-[350px] h-[350px] object-contain"
+          className="w-[400px] h-[400px] object-contain"
         />
       </div>
     </div>
