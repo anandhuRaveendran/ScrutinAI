@@ -8,21 +8,21 @@ const Audit = () => {
   const [fileName, setFileName] = useState('');
   const [showModal, setShowModal] = useState(false);
 
-  const handleAudit = () => {
-    setReport({
-      summary: `This Solidity smart contract provides a mechanism to mint an ERC721 for a membership into a particular organization or club. ...`,
-      issues: [
-        { severity: 'High', desc: 'Reentrancy vulnerability in withdraw()' },
-        { severity: 'Medium', desc: 'Unrestricted write to storage variable' },
-      ],
-      suggestions: [
-        'Use reentrancy guard modifier.',
-        'Add access control to sensitive functions.',
-      ],
-      score: 85,
+const handleAudit = async () => {
+  if (!contract) return;
+  try {
+    const res = await fetch('http://localhost:5000/api/audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contract }),
     });
+    const data = await res.json();
+    setReport(data); 
     setShowModal(true);
-  };
+  } catch (err) {
+    alert('Audit failed: ' + err.message);
+  }
+};
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];

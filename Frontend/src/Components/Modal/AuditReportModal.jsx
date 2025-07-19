@@ -14,15 +14,14 @@ const report = {
   score: 85,
 };
 
-export default function AuditReportModal({ open, onClose }) {
+export default function AuditReportModal({ open, onClose, report }) {
   const [fullscreen, setFullscreen] = useState(false);
 
   const handleDownloadPDF = () => {
-    // Placeholder: implement with jsPDF or html2pdf
     alert("Download PDF feature coming soon!");
   };
 
-  if (!open) return null;
+  if (!open || !report) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
@@ -31,20 +30,15 @@ export default function AuditReportModal({ open, onClose }) {
           ${fullscreen ? "w-[90vw] h-[90vh]" : "w-[500px] h-[600px]"}
         `}
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-3 right-4 text-2xl text-gray-400 hover:text-white z-10"
         >
           &times;
         </button>
-
-        {/* Heading */}
         <div className="text-2xl font-bold text-center py-5 border-b border-[#23262F]">
           Audit Report
         </div>
-
-        {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-8 py-6">
           <p className="text-purple-200 mb-6 text-center leading-relaxed">
             {report.summary}
@@ -53,7 +47,7 @@ export default function AuditReportModal({ open, onClose }) {
           <div className="mb-2">
             <span className="text-white font-semibold">Issues:</span>
             <ul className="list-disc ml-6">
-              {report.issues.map((issue, i) => (
+              {report.issues && report.issues.map((issue, i) => (
                 <li key={i} className={issue.severity === 'High' ? 'text-red-400' : 'text-yellow-300'}>
                   [{issue.severity}] {issue.desc}
                 </li>
@@ -63,11 +57,10 @@ export default function AuditReportModal({ open, onClose }) {
           <div>
             <span className="text-white font-semibold">Suggestions:</span>
             <ul className="list-disc ml-6 text-blue-300">
-              {report.suggestions.map((s, i) => <li key={i}>{s}</li>)}
+              {report.suggestions && report.suggestions.map((s, i) => <li key={i}>{s}</li>)}
             </ul>
           </div>
         </div>
-
         <div className="absolute bottom-4 right-6 flex gap-4">
           <button
             onClick={() => setFullscreen(f => !f)}
