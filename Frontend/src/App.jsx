@@ -5,7 +5,7 @@ import Navbar from './Components/Navbar/App';
 import Home from './Pages/Home/App';
 import Dashboard from './Pages/Dashboard/App';
 import Audit from './Pages/Audit/App';
-import Community from './Pages/Community/App';
+import Governance from './Pages/Governance/App';
 
 const App = () => (
   <Router>
@@ -16,7 +16,7 @@ const App = () => (
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/audit" element={<Audit />} />
-        <Route path="/community" element={<Community />} />
+        <Route path="/governance" element={<Governance />} />
       </Routes>
     </div>
   </Router>

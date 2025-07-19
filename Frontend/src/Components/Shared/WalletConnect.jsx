@@ -75,11 +75,11 @@ function CustomBNBWallet() {
   };
 
   return (
-    <div className="mb-3">
+    <div className="mb-4">
       <button
         onClick={openModal}
-        className="px-4 py-2 text-lg bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-      >
+        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-semibold"
+        title="Connect to BNB Wallet">
         Connect Wallet
       </button>
 
