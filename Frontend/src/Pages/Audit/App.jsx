@@ -22,7 +22,11 @@ const Audit = () => {
 
   const auditMutation = useMutation({
     mutationFn: postAudit,
-    onSuccess: () => setShowModal(true),
+    onSuccess: () => {
+    setShowModal(true);
+    setContract('');
+    setFileName('');
+  },
     onError: (err) => {
       alert('Audit failed: ' + err.message);
       console.error(err);
@@ -40,34 +44,17 @@ const Audit = () => {
     }
   };
 
+  const handleCloseModal = () => {
+  setShowModal(false);
+  auditMutation.reset();
+};
+
   const handleAudit = () => {
     if (contract) auditMutation.mutate(contract);
   };
 
   return (
     <div className="max-w-3xl mx-auto py-10 px-4">
-      {/* Loader Overlay */}
-      {auditMutation.isLoading && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-70">
-          <svg className="animate-spin h-12 w-12 text-blue-400" viewBox="0 0 24 24">
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-              fill="none"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.372 0 0 5.372 0 12h4z"
-            />
-          </svg>
-          <span className="mt-4 text-white text-xl">Auditing your contract...</span>
-        </div>
-      )}
 
       <h2 className="text-3xl font-bold text-white mb-6">Submit Smart Contract for Audit</h2>
       <WalletConnect />
@@ -93,34 +80,12 @@ const Audit = () => {
         onClick={handleAudit}
         disabled={!contract || auditMutation.isLoading}
       >
-        {auditMutation.isLoading ? (
-          <>
-            <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-                fill="none"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.372 0 0 5.372 0 12h4z"
-              />
-            </svg>
-            Auditing...
-          </>
-        ) : (
-          'Audit with AI'
-        )}
+        {auditMutation.isLoading ? "Auditing..." : "Audit with AI"}
       </button>
 
       <AuditReportModal
         open={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={handleCloseModal}
         report={auditMutation.data}
       />
     </div>

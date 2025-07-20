@@ -1,13 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { FaExpand, FaDownload } from "react-icons/fa";
+import html2pdf from "html2pdf.js";   // <-- Import html2pdf
 import { cleanAudit } from "../../utils/CleanAudit";
-
 
 export default function AuditReportModal({ open, onClose, report }) {
   const [fullscreen, setFullscreen] = useState(false);
 
+  const reportRef = useRef();  // <-- Create a ref to the report body
+
   const handleDownloadPDF = () => {
-    alert("Download PDF feature coming soon!");
+    const element = reportRef.current;
+    const opt = {
+      margin:       0.5,
+      filename:     'audit-report.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save();
   };
 
   if (!open || !report) return null;
@@ -31,8 +42,12 @@ export default function AuditReportModal({ open, onClose, report }) {
         <div className="text-2xl font-bold text-center py-5 border-b border-[#23262F]">
           Audit Report
         </div>
-        <div className="flex-1 overflow-y-auto px-8 py-6">
-          <p className="text-purple-200 mb-6 text-center leading-relaxed">
+        <div
+          ref={reportRef}
+          className="flex-1 overflow-y-auto px-8 py-6"
+          style={{ color: "#D6BCFA" }} 
+        >
+          <p className="mb-6 text-center leading-relaxed">
             {cleanedReport}
           </p>
         </div>
