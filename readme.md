@@ -16,5 +16,8 @@ Welcome to the repository! This guide will help you set up both the **Frontend**
 
 ### Navigate to the Frontend Directory
 
-`` cd Frontend  ``
+```cd Frontend```
+npm install
+npm run dev
+
 
