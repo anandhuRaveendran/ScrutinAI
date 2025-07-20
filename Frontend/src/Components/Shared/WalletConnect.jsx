@@ -11,9 +11,11 @@ function CustomBNBWallet() {
   const [tab] = useState("Activity");
   const [contractAddress, setContractAddress] = useState("");
   const [proceedMsg, setProceedMsg] = useState("");
-  const [status, setStatus] = useState(""); // "Safe", "Risky", "Unknown"
+  const [status, setStatus] = useState(""); 
   const [showConfirm, setShowConfirm] = useState(false);
-  const [cancelMsg, setCancelMsg] = useState(""); // New state for cancel message
+  const [cancelMsg, setCancelMsg] = useState(""); 
+  const [auditReport, setAuditReport] = useState("");
+
 
   const openModal = () => setShowModal(true);
   const closeModal = () => {
@@ -38,20 +40,40 @@ function CustomBNBWallet() {
     }
   };
 
-  const handleProceed = () => {
-    if (!ethers.isAddress(contractAddress)) {
-      setProceedMsg("Invalid contract address.");
-      setStatus("");
-      setShowConfirm(false);
-      return;
-    }
-    setProceedMsg("");
+const handleProceed = async () => {
+  if (!ethers.isAddress(contractAddress)) {
+    setProceedMsg("Invalid contract address.");
+    setStatus("");
+    setAuditReport("");
+    setShowConfirm(false);
+    return;
+  }
 
-    if (contractAddress.endsWith("1")) setStatus("Safe");
-    else if (contractAddress.endsWith("2")) setStatus("Risky");
-    else setStatus("Unknown");
+  setProceedMsg("Checking contract...");
+  setStatus("");
+  setAuditReport("");
+  setShowConfirm(false);
+
+  try {
+    const res = await fetch('http://localhost:3001/checkcontract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contractAddress }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Unknown error");
+
+    setStatus(data.risk);           
+    setAuditReport(data.score);     
     setShowConfirm(true);
-  };
+    setProceedMsg(""); 
+  } catch (err) {
+    setProceedMsg("Error: " + err.message);
+    setStatus("");
+    setAuditReport("");
+    setShowConfirm(false);
+  }
+};
 
   const handleCancel = () => {
     setShowConfirm(false);
@@ -125,7 +147,7 @@ function CustomBNBWallet() {
                       placeholder="Enter contract address"
                       value={contractAddress}
                       onChange={e => {
-                        setContractAddress(e.target.value);
+                        setContractAddress(e.target.value.trim());
                         setProceedMsg("");
                         setStatus("");
                         setShowConfirm(false);
@@ -135,7 +157,7 @@ function CustomBNBWallet() {
                     />
                     <button
                       onClick={handleProceed}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition mb-3"
+                      className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition "
                     >
                       Proceed
                     </button>
@@ -151,10 +173,15 @@ function CustomBNBWallet() {
                     )}
                   </div>
 
-                  {/* Result Status Section */}
                   {status && (
-                    <div className={`mb-5 py-3 rounded text-center font-semibold text-white ${statusColor[status]}`}>
-                      Status: {status}
+                    <div
+                      className={`p-3 mb-4 rounded font-semibold text-center ${
+                        status === "Safe" ? "bg-green-500 text-white" :
+                        status === "Risky" ? "bg-red-500 text-white" :
+                        "bg-yellow-500 text-black"
+                      }`}
+                    >
+                      This contract is <span className="capitalize font-bold">{status}</span>
                     </div>
                   )}
 

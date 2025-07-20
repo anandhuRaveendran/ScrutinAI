@@ -6,8 +6,12 @@ import Home from './Pages/Home/App';
 import Dashboard from './Pages/Dashboard/App';
 import Audit from './Pages/Audit/App';
 import Governance from './Pages/Governance/App';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 const App = () => (
+  <QueryClientProvider client={queryClient}>
   <Router>
     <div className="min-h-screen bg-[#101828]">
       <PreventBackForward /> 
@@ -20,6 +24,7 @@ const App = () => (
       </Routes>
     </div>
   </Router>
+  </QueryClientProvider>
 );
 
 export default App;
