@@ -11,7 +11,7 @@ const Navbar = () => {
               <path d="M12 2L2 7v6c0 5.25 3.75 10 10 10s10-4.75 10-10V7l-10-5z" fill="#3B82F6"/>
             </svg>
           </span>
-          <span className="text-white font-semibold text-xl">Web3AuditAI</span>
+          <span className="text-white font-semibold text-xl">ScrutinAI</span>
         </div>
         <div className="hidden md:flex items-center space-x-8 mr-10">
           <Link to="/" className="text-white hover:text-blue-400 transition">Home</Link>
