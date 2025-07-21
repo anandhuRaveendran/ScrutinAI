@@ -27,7 +27,14 @@ Please:
 2. Explain potential attacker vectors and positive or negative impact. 
 3. Suggest remediations or secure patterns. 
 4. Highlight vulnerable code lines if possible. 
-5. Return proper references or citations. No need to show code corrections. Use this code: 
+5. Return proper references or citations. No need to show code corrections. 
+6. Whether the contract is considered Safe or Risky
+- A risk score out of 10 (1 = very safe, 10 = very risky)
+Do not include detailed explanations.
+Example response:
+"Risky: 7/10"
+
+Use this code: 
 
 \`\`\`solidity
 ${contractCode}
