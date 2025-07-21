@@ -128,6 +128,24 @@ BSCSCAN_API_KEY=<your_bscscan_api_key>
 ```bash
 npx hardhat run scripts/deploy.cjs --network bscTestnet
 ```
+## How to Use
+
+On the interface, navigate to Audit Section.  
+
+1. Click on Connect Wallet, and input a verified contract address.
+
+    You can use these to see the different risk profiles:   
+Address 1: 0xD98aa2e771171Eea972e6081827EbE2836D1Cd48   
+Address 2: 0x74EDFfC164352663A694862b7785327Ab6520005  
+
+    Click on Proceed. It will return a risk factor within the wallet interface itself and prompts the user the proceed with the transaction or cancel it.
+
+2. Upload a .sol file in the input area. It will upload your .sol file and display the contents of the file.  
+
+    Click on Audit With AI. It will generate an Audit Report and show it to the user. There is a Download button for user to download the generated audit report as a .pdf file.
+
+
+
 ## Current Scope
 
 1. User can upload a solidity smart contract into the file upload section and click Audit With AI button to audit the uploaded smart contract. It will return a report with an audit report that the user can download as a .pdf file.
