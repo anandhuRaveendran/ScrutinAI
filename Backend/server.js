@@ -4,7 +4,7 @@ const axios = require('axios');
 const app = express();
 const cors = require('cors');
 const puppeteer = require('puppeteer');
-const { Ollama } =require('ollama')
+const { Ollama } = require('ollama')
 
 app.use(express.json());
 
@@ -160,8 +160,7 @@ app.post('/audit', async (req, res) => {
 
   console.log(`📝 Received contract for audit (${contractCode.length} chars)`);
 
-  const prompt = `
-You are an expert blockchain security researcher and smart contract auditor.
+  const prompt = `You are an expert blockchain security researcher and smart contract auditor.
 
 Analyze this Solidity smart contract and return ONLY a valid JSON object (no markdown, no backticks, no extra text) with this EXACT structure:
 
@@ -198,15 +197,7 @@ Analyze this Solidity smart contract and return ONLY a valid JSON object (no mar
   }
 }
 
-CRITICAL RULES:
-1. Return ONLY the JSON object - no markdown formatting, no \`\`\`json tags, no explanatory text
-2. Identify ALL vulnerability types: reentrancy, overflow/underflow, access control, unchecked calls, delegatecall, randomness, DoS, front-running, timestamp dependence, tx.origin usage, etc.
-3. Extract ACTUAL code snippets from the provided contract
-4. Provide working FIXED code for each vulnerability
-5. Assign severity based on: Critical (direct fund loss), High (major security issue), Medium (potential issue), Low (best practice)
-6. Calculate overall riskScore: 9-10 = Critical, 7-8 = High Risk, 4-6 = Medium Risk, 1-3 = Low Risk
-7. Be thorough but concise
-8. If the contract is safe, still return the structure with empty arrays
+CRITICAL: Ensure the JSON is complete and properly closed. Return ONLY valid JSON.
 
 Contract to analyze:
 
@@ -218,34 +209,44 @@ ${contractCode}
   try {
     console.log('🤖 Sending to OLLAMA...');
 
-    const response = await ollama.chat(
-      {
-        model: 'gpt-oss:120b-cloud',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a smart contract security auditor. You MUST respond with ONLY valid JSON, with no markdown formatting, no code blocks, and no additional text. The response must be parseable by JSON.parse().'
-          },
-          { role: 'user', content: prompt }
-        ],
-        stream: true,
-        temperature: 0.2, // Lower temperature for more consistent output
-        max_tokens: 4000
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
-          'Content-Type': 'application/json'
+    // Use streaming to collect full response
+    const stream = await ollama.chat({
+      model: 'gpt-oss:120b-cloud',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a smart contract security auditor. You MUST respond with ONLY valid JSON, with no markdown formatting, no code blocks, and no additional text. The response must be parseable by JSON.parse(). Ensure the JSON is COMPLETE with all closing brackets.'
         },
-        timeout: 60000 // 60 second timeout
+        { role: 'user', content: prompt }
+      ],
+      stream: true, // Enable streaming
+      options: {
+        temperature: 0.2,
+        num_predict: 12000, // Higher limit
       }
-    );
+    });
 
-    let aiResult = response.data?.choices?.[0]?.message?.content || '{}';
+    let aiResult = '';
+
+    // Collect all chunks
+    for await (const chunk of stream) {
+      aiResult += chunk.message.content;
+    }
+
     console.log('✅ Received AI response');
-    console.log('Raw AI response (first 200 chars):', aiResult.substring(0, 200));
+    console.log('Response length:', aiResult.length);
+    console.log('Raw AI response (first 500 chars):', aiResult.substring(0, 500));
+    console.log('Raw AI response (last 200 chars):', aiResult.substring(aiResult.length - 200));
 
-    // Clean up the response - remove markdown code blocks if present
+    if (!aiResult || aiResult.trim() === '' || aiResult === '{}') {
+      console.error('❌ Empty response from AI');
+      return res.status(500).json({
+        error: 'AI returned empty response',
+        details: 'The model did not generate any output.'
+      });
+    }
+
+    // Clean up the response
     aiResult = aiResult.trim();
     aiResult = aiResult.replace(/^```json\s*/i, '');
     aiResult = aiResult.replace(/^```\s*/i, '');
@@ -260,11 +261,35 @@ ${contractCode}
 
       // Validate required fields
       if (!auditData.riskScore || !auditData.vulnerabilities || !auditData.summary) {
-        console.warn('⚠️ Invalid audit response structure, creating fallback');
-        throw new Error('Invalid audit response structure');
+        console.warn('⚠️ Invalid audit response structure');
+
+        // Try to fix incomplete response
+        return res.status(200).json({
+          success: true,
+          audit: {
+            riskScore: auditData.riskScore || 5,
+            status: auditData.status || 'Unknown',
+            summary: auditData.summary || {
+              totalVulnerabilities: 0,
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+              gasOptimizations: 0
+            },
+            vulnerabilities: auditData.vulnerabilities || [],
+            recommendations: auditData.recommendations || {
+              immediate: ['Response incomplete - manual review recommended'],
+              bestPractices: [],
+              longTerm: []
+            }
+          },
+          timestamp: new Date().toISOString(),
+          contractLength: contractCode.length,
+          warning: 'Incomplete AI response'
+        });
       }
 
-      // Return structured data
       return res.status(200).json({
         success: true,
         audit: auditData,
@@ -274,9 +299,33 @@ ${contractCode}
 
     } catch (parseError) {
       console.error('❌ JSON Parse Error:', parseError.message);
-      console.error('Raw response causing error:', aiResult);
+      console.error('Parse error at position:', parseError.message.match(/\d+/)?.[0]);
 
-      // Create a fallback response with the raw text
+      // Try to extract partial valid JSON
+      let partialData = null;
+
+      // Attempt to find the last complete vulnerability
+      try {
+        const lastCompleteVulnIndex = aiResult.lastIndexOf('    },');
+        if (lastCompleteVulnIndex > 0) {
+          const truncated = aiResult.substring(0, lastCompleteVulnIndex + 6) + '\n  ],\n  "recommendations": {\n    "immediate": ["Response was truncated - review may be incomplete"],\n    "bestPractices": [],\n    "longTerm": []\n  }\n}';
+          partialData = JSON.parse(truncated);
+          console.log('✅ Successfully parsed truncated response');
+        }
+      } catch (fixError) {
+        console.error('Could not fix truncated JSON');
+      }
+
+      if (partialData) {
+        return res.status(200).json({
+          success: true,
+          audit: partialData,
+          timestamp: new Date().toISOString(),
+          contractLength: contractCode.length,
+          warning: 'Response was truncated but partially recovered'
+        });
+      }
+
       return res.status(200).json({
         success: true,
         audit: {
@@ -293,10 +342,10 @@ ${contractCode}
           vulnerabilities: [],
           recommendations: {
             immediate: ['AI response format error - manual review required'],
-            bestPractices: ['Please try again or contact support'],
+            bestPractices: ['Error: ' + parseError.message],
             longTerm: []
           },
-          rawReport: aiResult // Include raw response for debugging
+          rawReport: aiResult.substring(0, 1000) // First 1000 chars for debugging
         },
         timestamp: new Date().toISOString(),
         contractLength: contractCode.length,
@@ -305,33 +354,11 @@ ${contractCode}
     }
 
   } catch (err) {
-    console.error('❌ Error during audit:', err?.response?.data || err.message);
-
-    // Handle specific error types
-    if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
-      return res.status(408).json({
-        error: 'Audit request timed out',
-        details: 'The contract analysis took too long. Try with a smaller contract or try again.'
-      });
-    }
-
-    if (err?.response?.status === 429) {
-      return res.status(429).json({
-        error: 'Rate limit exceeded',
-        details: 'Too many audit requests. Please wait a moment and try again.'
-      });
-    }
-
-    if (err?.response?.status === 401 || err?.response?.status === 403) {
-      return res.status(500).json({
-        error: 'API authentication failed',
-        details: 'There is an issue with the AI service configuration. Please contact support.'
-      });
-    }
+    console.error('❌ Error during audit:', err);
 
     return res.status(500).json({
       error: 'Failed to audit contract',
-      details: err?.response?.data?.error || err.message
+      details: err.message || 'Unknown error occurred'
     });
   }
 });
@@ -368,15 +395,15 @@ ${contractCode}
   try {
     const response = await ollama.chat({
       model: 'gpt-oss:120b-cloud',
-        messages: [
-          { role: 'system', content: 'You are a smart contract security scanner. Return only valid JSON.' },
-          { role: 'user', content: quickPrompt }
-        ],
-        stream: false,
+      messages: [
+        { role: 'system', content: 'You are a smart contract security scanner. Return only valid JSON.' },
+        { role: 'user', content: quickPrompt }
+      ],
+      stream: false,
       options: {
         temperature: 0.2
       }
-      },
+    },
       {
         headers: {
           Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
@@ -465,13 +492,13 @@ ${contractSource}
 `;
 
     // Step 3: Call Perplexity AI
-    const aiRes =  await ollama.chat({
+    const aiRes = await ollama.chat({
       model: 'gpt-oss:120b-cloud',
-        messages: [
-          { role: 'system', content: 'You are a smart contract security risk analyzer.' },
-          { role: 'user', content: prompt }
-        ]
-      },
+      messages: [
+        { role: 'system', content: 'You are a smart contract security risk analyzer.' },
+        { role: 'user', content: prompt }
+      ]
+    },
       {
         headers: {
           Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
@@ -727,11 +754,11 @@ ${contractCode}
     console.log('Sending contract to Perplexity AI for audit...');
     const aiRes = await ollama.chat({
       model: 'gpt-oss:120b-cloud',
-        messages: [
-          { role: 'system', content: 'You are a helpful smart contract audit agent.' },
-          { role: 'user', content: prompt }
-        ]
-      },
+      messages: [
+        { role: 'system', content: 'You are a helpful smart contract audit agent.' },
+        { role: 'user', content: prompt }
+      ]
+    },
       {
         headers: {
           Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,

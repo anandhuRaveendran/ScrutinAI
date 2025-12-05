@@ -95,50 +95,48 @@ const Audit = () => {
   const isLoading = localLoading || auditMutation.isLoading;
 
   // STRONG Solidity detector: rejects common non-solidity formats and checks for solidity indicators
+  // IMPROVED Solidity detector with better pattern matching
   const looksLikeSolidity = (text = '') => {
     if (!text || text.trim().length < 10) return false;
 
-    const lower = text.toLowerCase();
+    const trimmed = text.trim();
 
-    // Hard rejections for non-Solidity code formats (common JS/HTML/JSON markers)
-    const forbiddenPatterns = [
-      /(^|\s)function\s*\(/,      // likely JS function (but note: solidity has function too; we keep simple)
-      /(^|\s)const\s+\w+\s*=/,    // JS const assignment
-      /(^|\s)var\s+\w+\s*=/,      // JS var
-      /(^|\s)let\s+\w+\s*=/,      // JS let
-      /(^|\s)import\s+["']/,      // JS import (but solidity uses import too — however solidity imports often look different)
-      /<html>|<\/html>/,          // HTML
-      /^\s*{[\s\S]*}\s*$/m,       // JSON object content
-      /<[^>]+>/                   // any HTML/XML tag
-    ];
-    if (forbiddenPatterns.some((p) => p.test(lower))) {
-      // allow "import" as it's valid in solidity; so special-case: if import is present but also solidity indicators exist, continue
-      if (!/import\s+["']/.test(lower)) return false;
-    }
-
-    // Solidity must contain one of these indicators (strong signals)
-    const solidityIndicators = [
-      /pragma\s+solidity/,
-      /\bcontract\s+\w+/,
-      /\blibrary\s+\w+/,
-      /\binterface\s+\w+/,
-      /\bstruct\s+\w+/,
-      /\benum\s+\w+/,
-      /mapping\s*\(/,
-      /uint(8|16|32|64|128|256)/,
-      /\baddress\b/,
-      /modifier\s+\w+/,
-      /event\s+\w+/,
-      /override\b/,
-      /assembly\s*\{/
+    // Check for Solidity-specific keywords that are strong indicators
+    const solidityKeywords = [
+      /pragma\s+solidity/i,
+      /\bcontract\s+\w+/i,
+      /\blibrary\s+\w+/i,
+      /\binterface\s+\w+/i,
     ];
 
-    if (solidityIndicators.some((p) => p.test(lower))) {
-      // Basic Solidity body structure must exist
-      if (text.includes('{') && text.includes('}')) return true;
-    }
+    // At least one strong indicator must be present
+    const hasStrongIndicator = solidityKeywords.some(pattern => pattern.test(trimmed));
 
-    return false;
+    if (!hasStrongIndicator) return false;
+
+    // Additional Solidity-specific patterns (at least 2 should match for confidence)
+    const solidityPatterns = [
+      /\bfunction\s+\w+/i,
+      /\bmapping\s*\(/i,
+      /uint(8|16|32|64|128|256)?\b/i,
+      /\baddress\b/i,
+      /\bmodifier\s+\w+/i,
+      /\bevent\s+\w+/i,
+      /\bpublic\b|\bprivate\b|\binternal\b|\bexternal\b/i,
+      /\breturns\s*\(/i,
+      /\bpayable\b/i,
+      /\bview\b|\bpure\b/i,
+      /\bmemory\b|\bstorage\b|\bcalldata\b/i,
+      /msg\.sender|msg\.value|block\./i,
+      /\brequire\s*\(|\bassert\s*\(|\brevert\s*\(/i,
+    ];
+
+    const matchCount = solidityPatterns.filter(pattern => pattern.test(trimmed)).length;
+
+    // Must have braces (contract body) and at least 2 Solidity patterns
+    const hasStructure = trimmed.includes('{') && trimmed.includes('}');
+
+    return hasStructure && matchCount >= 2;
   };
 
   const handleFileChange = async (e) => {
