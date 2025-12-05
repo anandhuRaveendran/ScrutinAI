@@ -1,14 +1,5 @@
 import React from "react";
 import { FaEye, FaDownload } from "react-icons/fa";
-import {
-  Card,
-  CardHeader,
-  Typography,
-  CardBody,
-  CardFooter,
-  IconButton,
-  Tooltip,
-} from "@material-tailwind/react";
 
 const REPORTS = [
   { id: 1, name: "ERC721 Membership Audit", date: "12/07/24", status: "Resolved" },
@@ -28,79 +19,50 @@ export default function AuditReports() {
   };
 
   return (
-    <Card className="w-full max-w-full bg-[#1A2536] border border-white">
-      <CardHeader floated={false} shadow={false} className="bg-[#1A2536] pl-5">
-      </CardHeader>
-      <CardBody className="p-0">
-        <table className="w-full min-w-max table-auto text-left">
+    <div className="bg-[#071021] border border-[#152231] rounded-xl shadow-sm overflow-hidden">
+      <div className="px-6 py-4 border-b border-[#152231] flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-white">Audit Reports</h3>
+          <p className="text-sm text-gray-400">Recent published audits</p>
+        </div>
+        <div className="text-sm text-gray-400">Total: {REPORTS.length}</div>
+      </div>
+
+      <div className="p-4">
+        <table className="w-full table-auto">
           <thead>
-            <tr>
-              {TABLE_HEAD.map((head) => (
-                <th
-                  key={head}
-                  className="border-b border-white bg-blue-gray-50/50 px-4 pb-4 text-sm text-white mb-2"
-                >
-                  {head}
-                </th>
+            <tr className="text-left text-xs text-gray-400 uppercase">
+              {TABLE_HEAD.map((h) => (
+                <th key={h} className="py-3 px-4">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody>
-            {REPORTS.map((report, index) => (
-              <tr
-                key={report.id}
-                className={` transition ${
-                  index % 2 === 0 ? "bg-[#1A2536]" : "bg-[#1A2536]/80"
-                }`}
-              >
-                <td className="px-4 py-3">
-                  <Typography variant="small" color="white" className="font-medium">
-                    {report.name}
-                  </Typography>
+
+          <tbody className="divide-y divide-[#0e1a28]">
+            {REPORTS.map((report, idx) => (
+              <tr key={report.id} className="hover:bg-[#081627] transition">
+                <td className="py-4 px-4">
+                  <div className="font-medium text-white">{report.name}</div>
                 </td>
-                <td className="px-4 py-3 text-white font-medium">{report.date}</td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      report.status === "Resolved"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
+                <td className="py-4 px-4 text-gray-300">{report.date}</td>
+                <td className="py-4 px-4">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${report.status === "Resolved" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
                     {report.status}
                   </span>
                 </td>
-                <td className="px-4 py-3 flex item-center gap-5">
-                  <Tooltip content="View Report" >
-                    <IconButton
-                      variant="filled"
-                      color="blue"
-                      size="sm"
-                      onClick={() => handleView(report)}
-                      className="focus:outline-none"
-                      aria-label={`View report ${report.name}`}
-                    >
-                      <FaEye className="h-4 w-4" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip content="Download Report">
-                    <IconButton
-                      variant="filled"
-                      color="green"
-                      size="sm"
-                      onClick={() => handleDownload(report)}
-                      className="focus:outline-none"
-                      aria-label={`Download report ${report.name}`}
-                    >
-                      <FaDownload className="h-4 w-4" />
-                    </IconButton>
-                  </Tooltip>
+                <td className="py-4 px-4 flex gap-3">
+                  <button onClick={() => handleView(report)} className="p-2 rounded-md bg-[#082233] hover:bg-[#0b2f42]">
+                    <FaEye className="text-gray-200" />
+                  </button>
+                  <button onClick={() => handleDownload(report)} className="p-2 rounded-md bg-[#082233] hover:bg-[#0b2f42]">
+                    <FaDownload className="text-gray-200" />
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </CardBody>
-    </Card>
+      </div>
+    </div>
   );
 }

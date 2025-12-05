@@ -36,52 +36,53 @@ const AUDITORS = [
 
 export default function AuditorsTable() {
   return (
-    <div className="w-full max-w-full border border-white rounded-lg shadow">
-      <table className="w-full text-left">
-        <thead>
-          <tr className="text-white text-sm border-b">
-            <th className="py-3 px-4 font-semibold">Auditor</th>
-            <th className="py-3 px-4 font-semibold">Score</th>
-            <th className="py-3 px-4 font-semibold">Audits</th>
-          </tr>
-        </thead>
-        <tbody>
-          {AUDITORS.map((auditor, idx) => (
-            <tr
-              key={auditor.email}
-              className="border-b last:border-b-0  transition"
-            >
-              {/* Profile */}
-              <td className="py-3 px-4">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={auditor.img}
-                    alt={auditor.name}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                  <div>
-                    <div className="font-medium text-white">{auditor.name}</div>
-                  </div>
-                </div>
-              </td>
-              {/* Function */}
-              <td className="py-3 px-4">
-                <div>
-                  <div className="font-medium text-white">{auditor.score}</div>
-                </div>
-              </td>
-              {/* audits */}
-              <td className="py-3 px-4 text-white font-medium">{auditor.audits}</td>
-              {/* Edit */}
-              <td className="py-3 px-4">
-                <button className="p-1 hover:bg-gray-200 rounded">
-                  <EyeIcon className="w-4 h-4 text-gray-500" />
-                </button>
-              </td>
+    <div className="bg-[#071021] border border-[#152231] rounded-xl shadow-sm overflow-hidden">
+      <div className="px-6 py-4 border-b border-[#152231] flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-white">Trusted Auditors</h3>
+          <p className="text-sm text-gray-400">Top contributors and their activity</p>
+        </div>
+        <div className="text-sm text-gray-400">Total: {AUDITORS.length}</div>
+      </div>
+
+      <div className="p-4">
+        <table className="w-full table-auto">
+          <thead>
+            <tr className="text-left text-xs text-gray-400 uppercase">
+              <th className="py-3 px-4">Auditor</th>
+              <th className="py-3 px-4">Score</th>
+              <th className="py-3 px-4">Audits</th>
+              <th className="py-3 px-4" />
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-[#0e1a28]">
+            {AUDITORS.map((auditor, idx) => (
+              <tr key={auditor.name} className="hover:bg-[#081627] transition">
+                <td className="py-4 px-4">
+                  <div className="flex items-center gap-3">
+                    <img src={auditor.img} alt={auditor.name} className="w-12 h-12 rounded-full object-cover ring-1 ring-white/5" />
+                    <div>
+                      <div className="font-medium text-white">{auditor.name}</div>
+                      <div className="text-xs text-gray-400">Lead auditor</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="py-4 px-4">
+                  <div className="font-semibold text-white">{auditor.score}</div>
+                </td>
+                <td className="py-4 px-4">
+                  <div className="text-white font-medium">{auditor.audits}</div>
+                </td>
+                <td className="py-4 px-4">
+                  <button className="p-2 rounded-md bg-[#082233] hover:bg-[#0b2f42] transition" aria-label={`View ${auditor.name}`}>
+                    <EyeIcon className="w-4 h-4 text-gray-300" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

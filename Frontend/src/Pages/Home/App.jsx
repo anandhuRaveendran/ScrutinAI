@@ -36,13 +36,12 @@ const features = [
 ];
 
 const Home = () => (
-  <main className="max-w-7xl mx-auto px-6 py-16">
+  <main className="max-w-7xl mx-auto pl-[4%] py-16">
     {/* Hero Section */}
     <div className="flex flex-col md:flex-row items-center justify-between">
       <div className="flex-1">
         <h1 className="text-white text-5xl md:text-6xl font-bold mb-6 leading-tight">
-          AI-Powered Smart Contract Auditing<br className="hidden md:block" />
-          for BNB Testnet
+          AI-Powered Smart Contract Auditing <br className="hidden md:block" />
         </h1>
         <p className="text-[#B0B8C1] text-lg mb-8 max-w-xl">
           Secure your blockchain projects with instant, automated AI audits and real-time community collaboration. Submit your contract, get detailed vulnerability reports, and join a gamified, educational security platform built for everyone.
@@ -50,23 +49,23 @@ const Home = () => (
         <div className="flex space-x-4">
           <Link
             to="/audit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded font-semibold text-lg transition"
+            className="bg-[#04d9ff] hover:bg-[#4B0082] text-white px-6 py-3 rounded font-semibold text-lg transition"
           >
             Start Audit
           </Link>
           <Link
             to="/dashboard"
-            className="border border-[#B0B8C1] text-white px-6 py-3 rounded font-semibold text-lg hover:bg-[#1A2536] transition"
+            className="border border-[#B0B8C1] text-white px-6 py-3 rounded font-semibold text-lg hover:bg-[#04d9ff] transition"
           >
             My Dashboard
           </Link>
         </div>
       </div>
       {/* IMAGE IS HERE */}
-      <div className="flex-1 flex justify-center mt-12 md:mt-0">
+      <div className="flex-1 flex justify-center items-center mt-12 md:mt-0">
         <img
           // src="https://i.ibb.co/6bQ7Q6d/shield-logo.png" // 
-          src = "https://cdn-hnddh.nitrocdn.com/KqRjbeIbVVaUkfyLngjfpxqYLCgqfSCV/assets/images/optimized/rev-280072d/blocktunix.com/wp-content/uploads/2023/07/adt_bnr2x.png"
+          src="https://hashlock.com/wp-content/uploads/2024/08/request.png"
           // src={HomeImage} 
           alt="Shield Logo"
           className="w-[400px] h-[400px] object-contain"
