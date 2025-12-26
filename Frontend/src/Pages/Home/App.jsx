@@ -49,13 +49,13 @@ const Home = () => (
         <div className="flex space-x-4">
           <Link
             to="/audit"
-            className="bg-[#04d9ff] hover:bg-[#4B0082] text-white px-6 py-3 rounded font-semibold text-lg transition"
+            className="bg-[#04d9ff] hover:bg-[#00bcd4] text-black px-6 py-3 rounded font-semibold text-lg transition"
           >
             Start Audit
           </Link>
           <Link
             to="/dashboard"
-            className="border border-[#B0B8C1] text-white px-6 py-3 rounded font-semibold text-lg hover:bg-[#04d9ff] transition"
+            className="border border-[#B0B8C1] text-white px-6 py-3 rounded font-semibold text-lg hover:bg-[#04d9ff] transition hover:text-black"
           >
             My Dashboard
           </Link>
