@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaGoogle, FaGithub, FaGitlab } from "react-icons/fa";
+import { FaGoogle, FaGithub, FaDiscord } from "react-icons/fa";
 import { useLogin } from "../../../hooks/userRegistration";
 import { useAuth } from "../../../context/AuthContext";
 import { loginSchema } from "../../../validation/loginSchema";
@@ -51,8 +51,8 @@ const Login = () => {
         window.location.href = `${API_URL}/auth/github`;
     };
 
-    const handleGitlabLogin = () => {
-        window.location.href = `${API_URL}/auth/gitlab`;
+    const handleDiscordLogin = () => {
+        window.location.href = `${API_URL}/auth/discord`;
     };
 
 
@@ -160,10 +160,10 @@ const Login = () => {
                         <FaGithub className="text-white" /> GitHub
                     </button>
                     <button
-                        onClick={handleGitlabLogin}
+                        onClick={handleDiscordLogin}
                         className="flex-1 flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 py-2 rounded-full text-sm transition"
                     >
-                        <FaGitlab className="text-[#fc6d26]" /> GitLab
+                        <FaDiscord className="text-[#5865F2]" /> Discord
                     </button>
 
                 </div>

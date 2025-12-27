@@ -103,12 +103,12 @@ router.get(
     }
 );
 
-/* GITLAB */
-router.get("/gitlab", passport.authenticate("gitlab", { scope: ["read_user"] }));
+/* DISCORD */
+router.get("/discord", passport.authenticate("discord"));
 
 router.get(
-    "/gitlab/callback",
-    passport.authenticate("gitlab", {
+    "/discord/callback",
+    passport.authenticate("discord", {
         failureRedirect: "http://localhost:5173/login",
     }),
     (req, res) => {
