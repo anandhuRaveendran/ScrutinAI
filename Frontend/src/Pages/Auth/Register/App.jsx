@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
     FaBrain,
     FaShieldAlt,
@@ -9,28 +9,74 @@ import {
     FaGithub,
     FaGitlab,
 } from "react-icons/fa";
+import { useRegister } from "../../../hooks/userRegistration";
+import { registerSchema } from "../../../validation/registerSchema";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Register = () => {
+    const navigate = useNavigate();
+    const { mutate, isLoading, error } = useRegister();
+
+    const handleGoogleRegister = () => {
+        window.location.href = `${API_URL}/auth/google`;
+    };
+
+    const handleGithubRegister = () => {
+        window.location.href = `${API_URL}/auth/github`;
+    };
+
+    const handleGitlabRegister = () => {
+        window.location.href = `${API_URL}/auth/gitlab`;
+    };
+
+
+    const [form, setForm] = useState({
+        firstName: "",
+        lastName: "",
+        username: "",
+        email: "",
+        password: "",
+    });
+
+    const [formErrors, setFormErrors] = useState({});
+
+    const handleChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+        setFormErrors({ ...formErrors, [e.target.name]: "" });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        try {
+            await registerSchema.validate(form, { abortEarly: false });
+            setFormErrors({});
+
+            mutate(form, {
+                onSuccess: () => navigate("/login"),
+            });
+        } catch (validationError) {
+            const errors = {};
+            validationError.inner.forEach((err) => {
+                errors[err.path] = err.message;
+            });
+            setFormErrors(errors);
+        }
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center p-4 sm:p-6">
-            <div
-                className="
-          w-full max-w-6xl max-h-[90vh]
-          grid grid-cols-1 lg:grid-cols-2
-          bg-[#0b0f14]/90 backdrop-blur-xl
-          rounded-2xl overflow-hidden
-          shadow-2xl border border-white/10
-        "
-            >
-                {/* LEFT INFO PANEL */}
-                <div className="hidden lg:flex flex-col justify-between p-8 bg-gradient-to-br from-[#0f172a] to-black">
+            <div className="w-full max-w-6xl max-h-[90vh] grid grid-cols-1 lg:grid-cols-2 bg-[#0b0f14]/90 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+
+                {/* LEFT PANEL (unchanged) */}
+                <div className="hidden lg:flex flex-col p-8 bg-gradient-to-br from-[#0f172a] to-black overflow-y-auto">
                     <div>
                         <h1 className="text-3xl font-bold mb-2">
                             Secure Smart Contracts with{" "}
                             <span className="text-[#04d9ff]">ScrutinAI</span>
                         </h1>
 
-                        <p className="mt-[10%] text-gray-400 mb-6">
+                        <p className="text-gray-400 mb-6 mt-[10%]">
                             AI-powered auditing with immutable, verifiable security reports.
                         </p>
 
@@ -38,12 +84,9 @@ const Register = () => {
                             <li className="flex gap-3">
                                 <FaBrain className="mt-1 text-[#04d9ff]" />
                                 <div>
-                                    <h4 className="font-semibold text-white">
-                                        AI vulnerability detection
-                                    </h4>
+                                    <h4 className="font-semibold text-white">AI vulnerability detection</h4>
                                     <p className="text-gray-400 leading-snug">
-                                        Detect bugs, risks, and compliance issues in minutes using
-                                        AI trained on real-world exploits.
+                                        Detect bugs, risks, and compliance issues in minutes.
                                     </p>
                                 </div>
                             </li>
@@ -51,12 +94,9 @@ const Register = () => {
                             <li className="flex gap-3">
                                 <FaShieldAlt className="mt-1 text-[#04d9ff]" />
                                 <div>
-                                    <h4 className="font-semibold text-white">
-                                        On-chain & IPFS audit proofs
-                                    </h4>
+                                    <h4 className="font-semibold text-white">On-chain & IPFS proofs</h4>
                                     <p className="text-gray-400 leading-snug">
-                                        Transparent, tamper-proof audit records stored on-chain and
-                                        IPFS.
+                                        Transparent, tamper-proof audit records.
                                     </p>
                                 </div>
                             </li>
@@ -64,12 +104,9 @@ const Register = () => {
                             <li className="flex gap-3">
                                 <FaGavel className="mt-1 text-[#04d9ff]" />
                                 <div>
-                                    <h4 className="font-semibold text-white">
-                                        Governance & bug bounties
-                                    </h4>
+                                    <h4 className="font-semibold text-white">Governance & rewards</h4>
                                     <p className="text-gray-400 leading-snug">
-                                        Human auditors review AI reports and earn rewards for
-                                        verified issues.
+                                        Human auditors earn rewards for verified issues.
                                     </p>
                                 </div>
                             </li>
@@ -77,24 +114,18 @@ const Register = () => {
                             <li className="flex gap-3">
                                 <FaWallet className="mt-1 text-[#04d9ff]" />
                                 <div>
-                                    <h4 className="font-semibold text-white">
-                                        Real-time wallet protection
-                                    </h4>
+                                    <h4 className="font-semibold text-white">Wallet protection</h4>
                                     <p className="text-gray-400 leading-snug">
-                                        Get warnings before interacting with risky or malicious
-                                        contracts.
+                                        Get warnings before risky interactions.
                                     </p>
                                 </div>
                             </li>
-
                         </ul>
-
-                        <p className="text-xs text-gray-500 mt-[20%]">
-                            © {new Date().getFullYear()} ScrutinAI · built by Ledger Legends
-                        </p>
                     </div>
 
-
+                    <p className="text-xs text-gray-500 mt-auto">
+                        © {new Date().getFullYear()} ScrutinAI · built by Ledger Legends
+                    </p>
                 </div>
 
                 {/* RIGHT FORM PANEL */}
@@ -102,54 +133,68 @@ const Register = () => {
                     <h2 className="text-2xl font-semibold mb-2 text-center">
                         Create your ScrutinAI account
                     </h2>
-                    <p className="text-sm text-gray-400 text-center mb-6">
+                    <p className="text-sm text-gray-400 text-center mb-3">
                         Start auditing smart contracts with AI-powered security
                     </p>
 
                     {/* Social buttons */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-                        <button className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 py-2 rounded text-sm transition">
-                            <FaGoogle className="text-[#ea4335]" />
-                            Google
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                        <button onClick={handleGoogleRegister} className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 py-2 rounded text-sm transition">
+                            <FaGoogle className="text-[#ea4335]" /> Google
                         </button>
-
-                        <button className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 py-2 rounded text-sm transition">
-                            <FaGithub className="text-white" />
-                            GitHub
+                        <button onClick={handleGithubRegister} className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 py-2 rounded text-sm transition">
+                            <FaGithub className="text-white" /> GitHub
                         </button>
-
-                        <button className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 py-2 rounded text-sm transition">
-                            <FaGitlab className="text-[#fc6d26]" />
-                            GitLab
+                        <button onClick={handleGitlabRegister} className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 py-2 rounded text-sm transition">
+                            <FaGitlab className="text-[#fc6d26]" /> GitLab
                         </button>
                     </div>
-
                     <div className="text-center text-gray-400 text-sm mb-4">or</div>
 
-                    {/* FORM */}
-                    <form className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <input type="text" placeholder="First Name" className="input" />
-                            <input type="text" placeholder="Last Name" className="input" />
+                            <div>
+                                <input name="firstName" onChange={handleChange} placeholder="First Name" className="input" />
+                                {formErrors.firstName && <p className="text-xs text-red-400">{formErrors.firstName}</p>}
+                            </div>
+
+                            <div>
+                                <input name="lastName" onChange={handleChange} placeholder="Last Name" className="input" />
+                                {formErrors.lastName && <p className="text-xs text-red-400">{formErrors.lastName}</p>}
+                            </div>
                         </div>
 
-                        <input type="text" placeholder="Username" className="input" />
-                        <input type="email" placeholder="Email" className="input" />
-                        <input type="password" placeholder="Password" className="input" />
+                        <div>
+                            <input name="username" onChange={handleChange} placeholder="Username" className="input" />
+                            {formErrors.username && <p className="text-xs text-red-400">{formErrors.username}</p>}
+                        </div>
 
-                        <p className="text-xs text-gray-400">
-                            Minimum length is 8 characters.
-                        </p>
+                        <div>
+                            <input name="email" type="email" onChange={handleChange} placeholder="Email" className="input" />
+                            {formErrors.email && <p className="text-xs text-red-400">{formErrors.email}</p>}
+                        </div>
+
+                        <div>
+                            <input name="password" type="password" onChange={handleChange} placeholder="Password" className="input" />
+                            {formErrors.password && <p className="text-xs text-red-400">{formErrors.password}</p>}
+                        </div>
+
+                        {error && (
+                            <p className="text-sm text-red-400">
+                                {error.response?.data?.error || "Registration failed"}
+                            </p>
+                        )}
 
                         <button
                             type="submit"
-                            className="w-full bg-[#04d9ff] text-black font-semibold py-2 rounded hover:bg-[#00bcd4] transition"
+                            disabled={isLoading}
+                            className="w-full bg-[#04d9ff] text-black font-semibold py-2 rounded hover:bg-[#00bcd4] transition disabled:opacity-50"
                         >
-                            Sign Up
+                            {isLoading ? "Creating account..." : "Sign Up"}
                         </button>
                     </form>
 
-                    <p className="text-sm mt-2">
+                    <p className="text-sm mt-4 text-center">
                         Already have an account?{" "}
                         <Link to="/login" className="text-[#04d9ff] hover:underline">
                             Login
