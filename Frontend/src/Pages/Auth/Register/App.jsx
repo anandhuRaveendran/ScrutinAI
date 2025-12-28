@@ -33,7 +33,6 @@ const Register = () => {
     const [form, setForm] = useState({
         firstName: "",
         lastName: "",
-        username: "",
         email: "",
         password: "",
     });
@@ -162,11 +161,6 @@ const Register = () => {
                                 <input name="lastName" onChange={handleChange} placeholder="Last Name" className="input" />
                                 {formErrors.lastName && <p className="text-xs text-red-400">{formErrors.lastName}</p>}
                             </div>
-                        </div>
-
-                        <div>
-                            <input name="username" onChange={handleChange} placeholder="Username" className="input" />
-                            {formErrors.username && <p className="text-xs text-red-400">{formErrors.username}</p>}
                         </div>
 
                         <div>

@@ -1,12 +1,11 @@
-import React from "react";
-import { FaTwitter, FaLinkedin, FaSearch, FaBell } from "react-icons/fa";
+import React, { useState } from "react";
+import { FaTwitter, FaLinkedin, FaGithub, FaSearch, FaBell } from "react-icons/fa";
 import AuditPie from "../../Components/Charts/PieChart";
+import ProfileMenu from "../../Components/Dashboard/ProfileMenu";
+import ProfileSetupModal from "../../Components/Dashboard/ProfileSetupModal";
+import { useAuth } from "../../context/AuthContext";
 
-const user = {
-  name: "Jane Doe",
-  avatar: "https://i.pravatar.cc/120?img=5",
-  title: "Smart Contract Auditor",
-  location: "Berlin, Germany",
+const demoStats = {
   audits: 12,
   accuracy: 97,
   rewards: 320,
@@ -28,7 +27,16 @@ const pieData = [
 ];
 
 export default function Dashboard() {
+  const { user, logout } = useAuth();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  const getInitials = (firstName, lastName) => {
+    const f = firstName ? firstName[0] : "";
+    const l = lastName ? lastName[0] : "";
+    return (f + l).toUpperCase() || "U";
+  };
+
+  const social = user?.socialLinks || {};
 
   return (
     <div className="min-h-screen text-gray-100 p-6">
@@ -45,11 +53,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="relative text-gray-300 hover:text-white">
-              <FaBell />
-              <span className="absolute -top-1 -right-2 bg-red-500 text-[10px] text-white rounded-full px-1">2</span>
-            </button>
-            <img src={user.avatar} alt="avatar" className="w-10 h-10 rounded-full border-2 border-white/10" />
+            <ProfileMenu user={user} onLogout={logout} onEditProfile={() => setIsEditModalOpen(true)} />
           </div>
         </div>
 
@@ -57,30 +61,37 @@ export default function Dashboard() {
           <aside className="col-span-12 md:col-span-4 lg:col-span-3">
             <div className="bg-[#071021] rounded-2xl p-6 shadow-lg">
               <div className="flex items-center gap-4">
-                <img src={user.avatar} alt="avatar" className="w-20 h-20 rounded-full border-4 border-blue-600" />
-                <div>
-                  <h2 className="text-2xl font-bold text-white">{user.name}</h2>
-                  <p className="text-sm text-slate-300 mt-1">
-                    {user.title} • {user.location}
-                  </p>
-                  <div className="flex items-center gap-2 mt-3">
-                    <button className="px-3 py-1 rounded-full bg-blue-600 text-white text-sm">Connect</button>
-                    <button className="px-3 py-1 rounded-full bg-white/5 text-slate-200 text-sm">Message</button>
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="avatar" className="w-20 h-20 rounded-full border-4 border-blue-600 object-cover" />
+                ) : (
+                  <div className="w-20 h-20 rounded-full border-4 border-blue-600 bg-blue-900 flex items-center justify-center text-xl font-bold text-white">
+                    {getInitials(user?.firstName, user?.lastName)}
                   </div>
+                )}
+                <div>
+                  <h2 className="text-xl font-bold text-white">{user ? `${user.firstName} ${user.lastName}` : "Guest"}</h2>
+                  <p className="text-sm text-slate-300 mt-1">
+                    {user?.role || "user"} • {user?.location || "Unknown"}
+                  </p>
                 </div>
+              </div>
+
+              <div className="flex items-center gap-2 mt-5 ml-5">
+                <button className="px-3 py-1 rounded-full bg-blue-600 text-white text-sm">Connect</button>
+                <button className="px-3 py-1 rounded-full bg-white/5 text-slate-200 text-sm">Message</button>
               </div>
 
               <div className="mt-6 grid grid-cols-3 gap-2 text-center">
                 <div>
-                  <div className="text-lg font-semibold text-blue-300">{user.audits}</div>
+                  <div className="text-lg font-semibold text-blue-300">{demoStats.audits}</div>
                   <div className="text-xs text-slate-400">Audits</div>
                 </div>
                 <div>
-                  <div className="text-lg font-semibold text-green-300">{user.accuracy}%</div>
+                  <div className="text-lg font-semibold text-green-300">{demoStats.accuracy}%</div>
                   <div className="text-xs text-slate-400">Accuracy</div>
                 </div>
                 <div>
-                  <div className="text-lg font-semibold text-yellow-300">{user.rewards}</div>
+                  <div className="text-lg font-semibold text-yellow-300">{demoStats.rewards}</div>
                   <div className="text-xs text-slate-400">Rewards</div>
                 </div>
               </div>
@@ -88,7 +99,7 @@ export default function Dashboard() {
               <div className="mt-6">
                 <h4 className="text-sm text-slate-300 mb-2">Badges</h4>
                 <div className="flex flex-wrap gap-2">
-                  {user.badges.map((b) => (
+                  {demoStats.badges.map((b) => (
                     <div
                       key={b.name}
                       className="bg-white/5 px-3 py-1 rounded-full text-sm text-slate-200 flex items-center gap-2"
@@ -100,26 +111,35 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="mt-6">
-                <h4 className="text-sm text-slate-300 mb-2">Skills</h4>
-                <div className="flex flex-wrap gap-2">
-                  <span className="bg-white/30 px-2 py-1 text-xs rounded">Solidity</span>
-                  <span className="bg-white/30 px-2 py-1 text-xs rounded">Ethers.js</span>
-                  <span className="bg-white/30 px-2 py-1 text-xs rounded">Hardhat</span>
+              {user?.skills && user.skills.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-sm text-slate-300 mb-2">Skills</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {user.skills.map((skill, index) => (
+                      <span key={index} className="bg-white/30 px-2 py-1 text-xs rounded">{skill}</span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* real contribution heatmap */}
-            <div className="bg-[#071021] rounded-2xl p-4 mt-6">
-              <h4 className="text-white font-semibold mb-3">Certifications</h4>
+            {user?.certifications && user.certifications.length > 0 && (
+              <div className="bg-[#071021] rounded-2xl p-4 mt-6">
+                <h4 className="text-white font-semibold mb-3">Certifications</h4>
 
-              <ul className="text-slate-300 text-sm space-y-1">
-                <li>• Certified Solidity Auditor</li>
-                <li>• Blockchain Security Engineer — Level 2</li>
-                <li>• Web3 Security Researcher Certification</li>
-              </ul>
-            </div>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  {user.certifications.map((cert, index) => {
+                    const title = typeof cert === 'string' ? cert : cert?.title;
+                    const issuer = typeof cert === 'object' ? cert?.issuer : null;
+                    if (!title) return null;
+                    return (
+                      <li key={index}>• {title} {issuer && <span className="text-slate-500">({issuer})</span>}</li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
 
           </aside>
 
@@ -148,8 +168,7 @@ export default function Dashboard() {
             <div className="bg-[#071021] rounded-2xl p-4 mb-4">
               <h3 className="text-white font-semibold mb-3">About Auditor</h3>
               <div className="text-slate-300 text-sm">
-                Specialized in smart contract security with expertise in Solidity, DeFi protocols, and EVM-based vulnerability
-                analysis. Experienced in detecting reentrancy, access control flaws, flash-loan exploits, and economic attacks.
+                {user?.about ? user.about : <span className="text-slate-500 italic">No description provided yet</span>}
               </div>
             </div>
 
@@ -166,7 +185,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {user.history.map((item) => (
+                    {demoStats.history.map((item) => (
                       <tr key={item.id} className="border-t border-white/6">
                         <td className="px-4 py-3">{item.contract}</td>
                         <td className="px-4 py-3 text-slate-300">{item.date}</td>
@@ -250,18 +269,33 @@ export default function Dashboard() {
 
               <div className="bg-[#071021] rounded-xl p-4">
                 <h4 className="text-white font-semibold mb-2">Contacts</h4>
-                <div className="flex items-center gap-3">
-                  <button className="bg-white/5 px-3 py-2 rounded text-slate-200 flex items-center gap-2">
-                    <FaTwitter /> Twitter
-                  </button>
-                  <button className="bg-white/5 px-3 py-2 rounded text-slate-200 flex items-center gap-2">
-                    <FaLinkedin /> LinkedIn
-                  </button>
+                <div className="flex flex-wrap gap-3">
+                  {social.twitter && (
+                    <a href={social.twitter} target="_blank" rel="noopener noreferrer" className="bg-white/5 px-3 py-2 rounded text-slate-200 flex items-center gap-2 hover:bg-white/10 transition">
+                      <FaTwitter /> Twitter
+                    </a>
+                  )}
+                  {social.linkedin && (
+                    <a href={social.linkedin} target="_blank" rel="noopener noreferrer" className="bg-white/5 px-3 py-2 rounded text-slate-200 flex items-center gap-2 hover:bg-white/10 transition">
+                      <FaLinkedin /> LinkedIn
+                    </a>
+                  )}
+                  {social.github && (
+                    <a href={social.github} target="_blank" rel="noopener noreferrer" className="bg-white/5 px-3 py-2 rounded text-slate-200 flex items-center gap-2 hover:bg-white/10 transition">
+                      <FaGithub /> GitHub
+                    </a>
+                  )}
+                  {!social.twitter && !social.linkedin && !social.github && (
+                    <span className="text-slate-500 text-sm">No contact links provided</span>
+                  )}
                 </div>
               </div>
             </div>
           </aside>
         </div>
+
+        {/* PROFILE/EDIT MODAL */}
+        <ProfileSetupModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
       </div>
     </div>
   );

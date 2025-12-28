@@ -26,7 +26,7 @@ const Navbar = () => {
 
 
     return (
-        <nav className="fixed top-4 left-0 right-0 z-50 pointer-events-none">
+        <nav className="fixed top-4 left-0 right-0 z-40 pointer-events-none">
             <div className="mx-auto max-w-4xl w-full px-4 pointer-events-auto">
                 <div
                     className="

@@ -12,12 +12,29 @@ passport.serializeUser((user, done) => {
 /* DESERIALIZE */
 passport.deserializeUser(async (id, done) => {
     try {
-        const user = await User.findById(id);
+        let user = await User.findById(id);
+
+        // LAZY MIGRATION: Convert old username to firstName/lastName
+        if (user && !user.firstName && user.username) {
+            const parts = user.username.trim().split(" ");
+            user.firstName = parts[0];
+            user.lastName = parts.slice(1).join(" ") || "";
+            await user.save();
+        }
+
         done(null, user);
     } catch (err) {
         done(err);
     }
 });
+
+/* HELPER TO SPLIT NAMES */
+const splitName = (fullName) => {
+    const parts = (fullName || "").trim().split(" ");
+    const firstName = parts[0] || "User";
+    const lastName = parts.slice(1).join(" ") || "";
+    return { firstName, lastName };
+};
 
 /* GOOGLE */
 passport.use(
@@ -32,9 +49,13 @@ passport.use(
 
             let user = await User.findOne({ email });
             if (!user) {
+                const firstName = profile.name?.givenName || splitName(profile.displayName).firstName;
+                const lastName = profile.name?.familyName || splitName(profile.displayName).lastName;
+
                 user = await User.create({
                     email,
-                    username: profile.displayName,
+                    firstName,
+                    lastName,
                     provider: "google",
                     providerId: profile.id,
                 });
@@ -58,9 +79,11 @@ passport.use(
 
             let user = await User.findOne({ email });
             if (!user) {
+                const { firstName, lastName } = splitName(profile.displayName || profile.username);
                 user = await User.create({
                     email,
-                    username: profile.username || profile.displayName,
+                    firstName,
+                    lastName,
                     provider: "github",
                     providerId: profile.id,
                 });
@@ -85,9 +108,11 @@ passport.use(
 
             let user = await User.findOne({ email });
             if (!user) {
+                const { firstName, lastName } = splitName(profile.global_name || profile.username);
                 user = await User.create({
                     email,
-                    username: profile.username,
+                    firstName,
+                    lastName,
                     provider: "discord",
                     providerId: profile.id,
                 });

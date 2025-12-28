@@ -19,13 +19,14 @@ router.get("/me", (req, res) => {
 
 
 /* REGISTER */
+/* REGISTER */
 router.post("/register", async (req, res) => {
-    const { firstName, lastName, username, email, password } = req.body;
+    const { firstName, lastName, email, password } = req.body;
 
     if (!email || !password)
         return res.status(400).json({ error: "Missing fields" });
 
-    const exists = await User.findOne({ $or: [{ email }, { username }] });
+    const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ error: "User already exists" });
 
     const hashed = await bcrypt.hash(password, 12);
@@ -33,9 +34,11 @@ router.post("/register", async (req, res) => {
     await User.create({
         firstName,
         lastName,
-        username,
         email,
         password: hashed,
+        skills: [],
+        certifications: [],
+        socialLinks: {}
     });
 
     res.status(201).json({ success: true });
@@ -51,6 +54,14 @@ router.post("/login", async (req, res, next) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ error: "Invalid credentials" });
 
+    // LAZY MIGRATION for email login
+    if (!user.firstName && user.username) {
+        const parts = user.username.trim().split(" ");
+        user.firstName = parts[0];
+        user.lastName = parts.slice(1).join(" ") || "";
+        await user.save();
+    }
+
     req.login(user, (err) => {
         if (err) return next(err);
         res.json({
@@ -58,7 +69,16 @@ router.post("/login", async (req, res, next) => {
             user: {
                 id: user._id,
                 email: user.email,
-                username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                avatar: user.avatar,
+                role: user.role,
+                profileCompleted: user.profileCompleted,
+                location: user.location,
+                skills: user.skills,
+                certifications: user.certifications,
+                socialLinks: user.socialLinks,
+                about: user.about
             },
         });
     });

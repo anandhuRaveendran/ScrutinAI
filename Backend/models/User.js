@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema({
     firstName: String,
     lastName: String,
-    username: String,
+    username: String, // Kept for legacy migration
     email: { type: String, unique: true },
     password: String,
 
@@ -14,6 +14,25 @@ const userSchema = new mongoose.Schema({
     },
 
     providerId: String,
+
+    /* Profile Fields */
+    profileCompleted: { type: Boolean, default: false },
+    avatar: String,
+    role: String,
+    location: String,
+    skills: [String],
+    certifications: [{
+        title: String,
+        issuer: String,
+        date: Date
+    }],
+    about: String,
+    socialLinks: {
+        twitter: String,
+        linkedin: String,
+        github: String,
+        website: String
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

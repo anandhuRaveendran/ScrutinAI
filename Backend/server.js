@@ -6,6 +6,7 @@ const session = require("express-session"); // ✅ ADD THIS
 
 const authRoutes = require("./routes/auth.routes");
 const auditRoutes = require("./routes/audit.routes");
+const userRoutes = require("./routes/user.routes");
 const passport = require("./config/passport");
 
 const app = express();
@@ -31,7 +32,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 /* BODY + CORS */
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -48,6 +50,7 @@ mongoose
 /* ROUTES */
 app.use("/auth", authRoutes);
 app.use("/audit", auditRoutes);
+app.use("/user", userRoutes);
 
 app.get("/health", (_, res) => {
   res.json({ status: "OK" });
