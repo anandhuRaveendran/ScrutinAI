@@ -8,6 +8,7 @@ import {
     FaTwitter,
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
+import Loader from "../Loader/app.jsx";
 
 /* ---------------- HARD-CODED DATA ---------------- */
 
@@ -68,14 +69,13 @@ const auditsData = [
     },
 ];
 
-/* ---------------- MAIN COMPONENT ---------------- */
 
 const ProfilePage = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState("followers");
 
     if (!user) {
-        return <div className="p-6 text-sm text-slate-400">Loading user...</div>;
+        return <Loader />;
     }
 
     return (
@@ -142,8 +142,8 @@ const ProfilePage = () => {
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
                         className={`pb-3 text-sm font-medium transition ${activeTab === tab.key
-                                ? "text-[#04d9ff] border-b-2 border-[#04d9ff]"
-                                : "text-slate-400 hover:text-white"
+                            ? "text-[#04d9ff] border-b-2 border-[#04d9ff]"
+                            : "text-slate-400 hover:text-white"
                             }`}
                     >
                         {tab.label}
