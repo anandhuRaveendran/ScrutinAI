@@ -5,11 +5,11 @@ import {
     FaGithub,
     FaLinkedin,
     FaDiscord,
-    FaLink,
+    FaTwitter,
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
-import ProfileStats from "./ProfileStats";
 
+/* ---------------- HARD-CODED DATA ---------------- */
 
 const followersData = [
     {
@@ -68,22 +68,20 @@ const auditsData = [
     },
 ];
 
+/* ---------------- MAIN COMPONENT ---------------- */
 
 const ProfilePage = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState("followers");
 
     if (!user) {
-        return (
-            <div className="p-6 text-sm text-slate-400">
-                Loading user...
-            </div>
-        );
+        return <div className="p-6 text-sm text-slate-400">Loading user...</div>;
     }
 
     return (
         <div className="max-w-6xl mx-auto px-6 py-8 bg-black min-h-screen">
-            <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-black border border-white/10 rounded-2xl p-6 flex gap-6">
+            {/* ================= PROFILE HEADER ================= */}
+            <div className="relative bg-gradient-to-br from-slate-900 via-slate-900 to-black border border-white/10 rounded-2xl p-6 flex gap-6">
                 <img
                     src={user.avatar}
                     alt="avatar"
@@ -95,9 +93,7 @@ const ProfilePage = () => {
                         {user.firstName} {user.lastName}
                     </h1>
 
-                    <p className="text-sm text-slate-400 mt-1">
-                        {user.role}
-                    </p>
+                    <p className="text-sm text-slate-400 mt-1">{user.role}</p>
 
                     <p className="text-sm text-slate-300 mt-3 max-w-xl">
                         {user.about}
@@ -112,43 +108,65 @@ const ProfilePage = () => {
                         </span>
                     </div>
                 </div>
+
+                {/* Social Links */}
+                {user.socialLinks &&
+                    Object.values(user.socialLinks).some(Boolean) && (
+                        <div className="absolute bottom-4 right-6 flex gap-3">
+                            {user.socialLinks.github && (
+                                <SocialLink icon={<FaGithub />} label="GitHub" url={user.socialLinks.github} />
+                            )}
+                            {user.socialLinks.linkedin && (
+                                <SocialLink icon={<FaLinkedin />} label="LinkedIn" url={user.socialLinks.linkedin} />
+                            )}
+                            {user.socialLinks.discord && (
+                                <SocialLink icon={<FaDiscord />} label="Discord" url={user.socialLinks.discord} />
+                            )}
+                            {user.socialLinks.twitter && (
+                                <SocialLink icon={<FaTwitter />} label="Twitter" url={user.socialLinks.twitter} />
+                            )}
+                        </div>
+                    )}
             </div>
 
-            {/* <div className="mt-4">
-                <ProfileStats />
-            </div> */}
-
-            <div className="flex gap-8 mt-10 border-b border-white/10">
+            {/* ================= TABS ================= */}
+            <div className="flex flex-wrap gap-8 mt-10 border-b border-white/10">
                 {[
                     { key: "followers", label: "Followers", count: followersData.length },
                     { key: "following", label: "Following", count: followingData.length },
                     { key: "audits", label: "Audits", count: auditsData.length },
+                    { key: "skills", label: "Skills", count: user.skills.length },
+                    { key: "certifications", label: "Certifications", count: user.certifications.length },
                 ].map((tab) => (
                     <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
                         className={`pb-3 text-sm font-medium transition ${activeTab === tab.key
-                            ? "text-[#04d9ff] border-b-2 border-orange-400"
-                            : "text-slate-400 hover:text-white"
+                                ? "text-[#04d9ff] border-b-2 border-[#04d9ff]"
+                                : "text-slate-400 hover:text-white"
                             }`}
                     >
                         {tab.label}
-                        <span className="ml-2 text-xs opacity-70">
-                            {tab.count}
-                        </span>
+                        <span className="ml-2 text-xs opacity-70">{tab.count}</span>
                     </button>
                 ))}
             </div>
 
+            {/* ================= TAB CONTENT ================= */}
             <div className="mt-8">
                 {activeTab === "followers" && <FollowersTab />}
                 {activeTab === "following" && <FollowingTab />}
                 {activeTab === "audits" && <AuditsTab />}
+                {activeTab === "skills" && <SkillsTab skills={user.skills} />}
+                {activeTab === "certifications" && (
+                    <CertificationsTab certifications={user.certifications} />
+                )}
             </div>
         </div>
     );
 };
 
+/* ---------------- TAB COMPONENTS ---------------- */
 
 const FollowersTab = () => (
     <div className="grid md:grid-cols-3 gap-4">
@@ -173,9 +191,7 @@ const AuditsTab = () => (
                 key={audit._id}
                 className="bg-slate-900/80 border border-white/5 rounded-xl p-4"
             >
-                <p className="text-white font-medium">
-                    {audit.title}
-                </p>
+                <p className="text-white font-medium">{audit.title}</p>
                 <p className="text-xs text-slate-400 mt-1">
                     Severity: {audit.severity} • {audit.date}
                 </p>
@@ -184,28 +200,63 @@ const AuditsTab = () => (
     </div>
 );
 
+const SkillsTab = ({ skills }) => (
+    <div className="flex flex-wrap gap-3">
+        {skills.map((skill) => (
+            <span
+                key={skill}
+                className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-slate-300"
+            >
+                {skill}
+            </span>
+        ))}
+    </div>
+);
+
+const CertificationsTab = ({ certifications }) => (
+    <div className="space-y-4">
+        {certifications.map((cert) => (
+            <div
+                key={cert._id}
+                className="bg-slate-900/80 border border-white/5 rounded-xl p-4"
+            >
+                <p className="text-white font-medium">{cert.title}</p>
+                <p className="text-xs text-slate-400 mt-1">
+                    Issued by {cert.issuer}
+                </p>
+            </div>
+        ))}
+    </div>
+);
+
+/* ---------------- SHARED COMPONENTS ---------------- */
 
 const UserCard = ({ user }) => (
     <div className="flex items-center justify-between bg-slate-900/80 border border-white/5 rounded-xl p-4">
         <div className="flex items-center gap-3">
-            <img
-                src={user.avatar}
-                className="w-12 h-12 rounded-full object-cover"
-            />
+            <img src={user.avatar} className="w-12 h-12 rounded-full object-cover" />
             <div>
-                <p className="text-white text-sm font-medium">
-                    {user.name}
-                </p>
-                <p className="text-xs text-[#04d9ff]">
-                    {user.role}
-                </p>
+                <p className="text-white text-sm font-medium">{user.name}</p>
+                <p className="text-xs text-[#04d9ff]">{user.role}</p>
             </div>
         </div>
-
-        <button className="text-slate-400 hover:text-white">
-            →
-        </button>
+        <button className="text-slate-400 hover:text-white">→</button>
     </div>
+);
+
+const SocialLink = ({ icon, label, url }) => (
+    <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 px-3 py-2 rounded-lg
+               bg-white/5 border border-white/10
+               text-xs text-slate-300
+               hover:bg-white/10 hover:text-white transition"
+    >
+        {icon}
+        {label}
+    </a>
 );
 
 export default ProfilePage;
