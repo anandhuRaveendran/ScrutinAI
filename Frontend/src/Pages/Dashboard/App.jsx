@@ -4,6 +4,7 @@ import AuditPie from "../../Components/Charts/PieChart";
 import ProfileMenu from "../../Components/Dashboard/ProfileMenu";
 import ProfileSetupModal from "../../Components/Dashboard/ProfileSetupModal";
 import { useAuth } from "../../context/AuthContext";
+import NotificationPanel from "../../Components/Nofitication/NotificationPanel";
 
 const demoStats = {
   audits: 12,
@@ -76,11 +77,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 mt-5 ml-5">
-                <button className="px-3 py-1 rounded-full bg-blue-600 text-white text-sm">Connect</button>
-                <button className="px-3 py-1 rounded-full bg-white/5 text-slate-200 text-sm">Message</button>
-              </div>
-
               <div className="mt-6 grid grid-cols-3 gap-2 text-center">
                 <div>
                   <div className="text-lg font-semibold text-blue-300">{demoStats.audits}</div>
@@ -123,7 +119,37 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* real contribution heatmap */}
+            <div className=" mt-4 bg-[#071021] rounded-xl p-4">
+              <h4 className="text-white font-semibold mb-2">Quick Stats</h4>
+
+              <div className="space-y-3">
+                {/* High Severity Issues */}
+                <div className="flex items-center justify-between text-sm text-slate-300">
+                  <span>High Severity Issues</span>
+                  <span className="font-semibold text-red-400">12</span>
+                </div>
+
+                {/* Avg Audit Time */}
+                <div className="flex items-center justify-between text-sm text-slate-300">
+                  <span>Avg Audit Duration</span>
+                  <span className="font-semibold text-blue-300">3.4 days</span>
+                </div>
+
+                {/* False Positive Rate */}
+                <div className="flex items-center justify-between text-sm text-slate-300">
+                  <span>False Positive Rate</span>
+                  <span className="font-semibold text-yellow-300">4%</span>
+                </div>
+
+                {/* Audits This Month */}
+                <div className="flex items-center justify-between text-sm text-slate-300">
+                  <span>Contracts Audited (This Month)</span>
+                  <span className="font-semibold text-green-300">7</span>
+                </div>
+              </div>
+            </div>
+
+            {/* real contribution heatmap
             {user?.certifications && user.certifications.length > 0 && (
               <div className="bg-[#071021] rounded-2xl p-4 mt-6">
                 <h4 className="text-white font-semibold mb-3">Certifications</h4>
@@ -139,7 +165,7 @@ export default function Dashboard() {
                   })}
                 </ul>
               </div>
-            )}
+            )} */}
 
           </aside>
 
@@ -162,13 +188,6 @@ export default function Dashboard() {
               <div className="bg-[#071021] p-4 rounded-xl">
                 <div className="text-sm text-slate-400">Contracts Audited</div>
                 <div className="text-2xl font-bold text-blue-300">42</div>
-              </div>
-            </div>
-
-            <div className="bg-[#071021] rounded-2xl p-4 mb-4">
-              <h3 className="text-white font-semibold mb-3">About Auditor</h3>
-              <div className="text-slate-300 text-sm">
-                {user?.about ? user.about : <span className="text-slate-500 italic">No description provided yet</span>}
               </div>
             </div>
 
@@ -230,66 +249,15 @@ export default function Dashboard() {
               </div>
             </div>
 
+
+
           </main>
 
           {/* right column - charts and stats */}
           <aside className="col-span-12 lg:col-span-3">
             <div className="sticky top-6 space-y-4">
               <AuditPie data={pieData} />
-
-              <div className="bg-[#071021] rounded-xl p-4">
-                <h4 className="text-white font-semibold mb-2">Quick Stats</h4>
-
-                <div className="space-y-3">
-                  {/* High Severity Issues */}
-                  <div className="flex items-center justify-between text-sm text-slate-300">
-                    <span>High Severity Issues</span>
-                    <span className="font-semibold text-red-400">12</span>
-                  </div>
-
-                  {/* Avg Audit Time */}
-                  <div className="flex items-center justify-between text-sm text-slate-300">
-                    <span>Avg Audit Duration</span>
-                    <span className="font-semibold text-blue-300">3.4 days</span>
-                  </div>
-
-                  {/* False Positive Rate */}
-                  <div className="flex items-center justify-between text-sm text-slate-300">
-                    <span>False Positive Rate</span>
-                    <span className="font-semibold text-yellow-300">4%</span>
-                  </div>
-
-                  {/* Audits This Month */}
-                  <div className="flex items-center justify-between text-sm text-slate-300">
-                    <span>Contracts Audited (This Month)</span>
-                    <span className="font-semibold text-green-300">7</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-[#071021] rounded-xl p-4">
-                <h4 className="text-white font-semibold mb-2">Contacts</h4>
-                <div className="flex flex-wrap gap-3">
-                  {social.twitter && (
-                    <a href={social.twitter} target="_blank" rel="noopener noreferrer" className="bg-white/5 px-3 py-2 rounded text-slate-200 flex items-center gap-2 hover:bg-white/10 transition">
-                      <FaTwitter /> Twitter
-                    </a>
-                  )}
-                  {social.linkedin && (
-                    <a href={social.linkedin} target="_blank" rel="noopener noreferrer" className="bg-white/5 px-3 py-2 rounded text-slate-200 flex items-center gap-2 hover:bg-white/10 transition">
-                      <FaLinkedin /> LinkedIn
-                    </a>
-                  )}
-                  {social.github && (
-                    <a href={social.github} target="_blank" rel="noopener noreferrer" className="bg-white/5 px-3 py-2 rounded text-slate-200 flex items-center gap-2 hover:bg-white/10 transition">
-                      <FaGithub /> GitHub
-                    </a>
-                  )}
-                  {!social.twitter && !social.linkedin && !social.github && (
-                    <span className="text-slate-500 text-sm">No contact links provided</span>
-                  )}
-                </div>
-              </div>
+              <NotificationPanel />
             </div>
           </aside>
         </div>

@@ -16,6 +16,8 @@ import AuthLayout from "./layouts/AuthLayout";
 import MainLayout from "./layouts/MainLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
 import NotFound from "./Pages/NotFound/App.jsx";
+import Notifications from "./Components/Nofitication/app.jsx";
+import ProfilePage from "./Components/Dashboard/Profile.jsx";
 
 const queryClient = new QueryClient();
 
@@ -60,7 +62,27 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+
+
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <Notifications />
+                </ProtectedRoute>
+              }
+            />
           </Route>
+
 
           {/* Main App Pages (With Navbar) */}
           <Route element={<MainLayout />}>
