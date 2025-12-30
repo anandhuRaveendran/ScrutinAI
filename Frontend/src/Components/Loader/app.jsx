@@ -6,7 +6,7 @@ const Loader = () => {
             <Atom
                 color="#04d9ff"
                 size="medium"
-                text="Loading profile..."
+                text="Loading ..."
                 textColor="#94a3b8"
             />
         </div>

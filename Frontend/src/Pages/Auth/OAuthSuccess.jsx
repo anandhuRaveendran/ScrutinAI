@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import Loader from "../../Components/Loader/app.jsx";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -23,7 +24,7 @@ const OAuthSuccess = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center text-white">
-            Logging you in...
+            <Loader />
         </div>
     );
 };
