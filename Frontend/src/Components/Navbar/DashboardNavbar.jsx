@@ -11,7 +11,6 @@ const Navbar = () => {
         withCredentials: true,
     });
 
-
     const handleLogout = async () => {
         try {
             await API.post("/auth/logout");
@@ -24,10 +23,9 @@ const Navbar = () => {
         }
     };
 
-
     return (
-        <nav className="fixed top-4 left-0 right-0 z-40 pointer-events-none">
-            <div className="mx-auto max-w-4xl w-full px-4 pointer-events-auto">
+        <nav className="relative z-10 w-full">
+            <div className="mx-auto max-w-4xl px-4 py-4">
                 <div
                     className="
             flex items-center justify-between
@@ -46,7 +44,9 @@ const Navbar = () => {
                                 fill="#04d9ff"
                             />
                         </svg>
-                        <span className="text-white font-semibold text-lg">ScrutinAI</span>
+                        <span className="text-white font-semibold text-lg">
+                            ScrutinAI
+                        </span>
                     </div>
 
                     {/* Links */}

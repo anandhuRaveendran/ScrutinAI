@@ -1,34 +1,48 @@
 import { useState } from "react";
-import { FaSearch } from "react-icons/fa";
 import ProfileMenu from "../../Components/Dashboard/ProfileMenu";
 import EditProfileModal from "../../Components/Modal/EditProfileModal";
 import { useAuth } from "../../context/AuthContext";
-import DasnboardLeftComponent from "../../Components/Dashboard/DashboardLeftComponent";
+import DashboardLeftComponent from "../../Components/Dashboard/DashboardLeftComponent";
 import DashboardMainComponent from "../../Components/Dashboard/DashboardMainComponent";
-import DashboardRightComponent from "../../Components/Dashboard/DashboardRightComponent";
 import SearchComponent from "../../Components/Dashboard/SearchComponent";
-
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   return (
-    <div className="min-h-screen text-gray-100 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-950 text-gray-100">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+
+        {/* Top Bar */}
         <div className="flex items-center justify-between mb-6">
           <SearchComponent />
-          <div className="flex items-center gap-4">
-            <ProfileMenu user={user} onLogout={logout} onEditProfile={() => setIsEditModalOpen(true)} />
-          </div>
+          <ProfileMenu
+            user={user}
+            onLogout={logout}
+            onEditProfile={() => setIsEditModalOpen(true)}
+          />
         </div>
 
-        <div className="grid grid-cols-12 gap-6">
-          <DasnboardLeftComponent />
-          <DashboardMainComponent />
-          <DashboardRightComponent />
+        {/* Main Layout */}
+        <div className="flex flex-col lg:flex-row gap-6">
+
+          {/* Left Sidebar */}
+          <div className="lg:w-[300px] w-full shrink-0">
+            <DashboardLeftComponent />
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1">
+            <DashboardMainComponent />
+          </div>
+
         </div>
-        <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
+
+        <EditProfileModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+        />
       </div>
     </div>
   );

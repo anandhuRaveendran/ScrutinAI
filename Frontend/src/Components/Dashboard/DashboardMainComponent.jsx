@@ -9,6 +9,7 @@ const DashboardMainComponent = () => {
             { id: 4, contract: "0xJkL012...678", date: "2024-04-20", status: "Passed", score: 92 },
 
         ],
+
     };
 
 

@@ -1,4 +1,5 @@
 import { useAuth } from "../../context/AuthContext";
+import AuditPie from "../Charts/PieChart";
 
 const demoStats = {
     audits: 12,
@@ -7,6 +8,11 @@ const demoStats = {
     badges: [
         { name: "Top Auditor", icon: "🏆" },
         { name: "Bug Hunter", icon: "🔍" },
+    ],
+    pieData: [
+        { name: "Passed", value: 8 },
+        { name: "Issues Found", value: 3 },
+        { name: "Manual Review", value: 1 },
     ],
 };
 
@@ -59,7 +65,7 @@ const DashboardProfile = () => {
                         {demoStats.badges.map((b) => (
                             <div
                                 key={b.name}
-                                className="bg-white/5 px-3 py-1 rounded-full text-sm text-slate-200 flex items-center gap-2"
+                                className="bg-white/5 px-3 py-1 rounded-full text-sm text-slate-200 mt-2 ml-1 items-center gap-2"
                             >
                                 <span>{b.icon}</span>
                                 <span>{b.name}</span>
@@ -93,6 +99,10 @@ const DashboardProfile = () => {
                         <span className="font-semibold text-green-300">7</span>
                     </div>
                 </div>
+            </div>
+
+            <div className="mt-4 sticky top-6 space-y-4">
+                <AuditPie data={demoStats.pieData} />
             </div>
         </aside>
     );
