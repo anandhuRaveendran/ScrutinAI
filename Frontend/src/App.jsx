@@ -7,8 +7,8 @@ import Home from "./Pages/Home/App";
 import Dashboard from "./Pages/Dashboard/App";
 import Audit from "./Pages/Audit/App";
 import Governance from "./Pages/Governance/App";
-import Login from "./Pages/Auth/Login/App";
-import Register from "./Pages/Auth/Register/App";
+import Login from "./Pages/Auth/Login.jsx";
+import Register from "./Pages/Auth/Register.jsx";
 import OAuthSuccess from "./Pages/Auth/OAuthSuccess";
 
 import ProtectedRoute from "./utils/ProtectedRoute";
@@ -17,7 +17,7 @@ import MainLayout from "./layouts/MainLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
 import NotFound from "./Pages/NotFound/App.jsx";
 import Notifications from "./Components/Nofitication/app.jsx";
-import ProfilePage from "./Components/Dashboard/Profile.jsx";
+import ProfilePage from "./Pages/Profile/ProfilePage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -27,12 +27,10 @@ const App = () => (
       <Router>
         <Routes>
 
-          {/* Auth Pages (No Navbar) */}
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/oauth-success" element={<OAuthSuccess />} />
-
           </Route>
 
           <Route element={<DashboardLayout />}>
@@ -84,11 +82,9 @@ const App = () => (
           </Route>
 
 
-          {/* Main App Pages (With Navbar) */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
           </Route>
-
           <Route path="*" element={<NotFound />} />
 
         </Routes>

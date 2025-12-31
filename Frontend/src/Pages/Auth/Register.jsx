@@ -9,8 +9,8 @@ import {
     FaGithub,
     FaGitlab,
 } from "react-icons/fa";
-import { useRegister } from "../../../hooks/userRegistration";
-import { registerSchema } from "../../../validation/registerSchema";
+import { useRegister } from "../../hooks/userRegistration";
+import { registerSchema } from "../../validation/registerSchema";
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Register = () => {
@@ -66,8 +66,6 @@ const Register = () => {
     return (
         <div className="min-h-screen flex items-center justify-center p-4 sm:p-6">
             <div className="w-full max-w-6xl max-h-[90vh] grid grid-cols-1 lg:grid-cols-2 bg-[#0b0f14]/90 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl border border-white/10">
-
-                {/* LEFT PANEL (unchanged) */}
                 <div className="hidden lg:flex flex-col p-8 bg-gradient-to-br from-[#0f172a] to-black overflow-y-auto">
                     <div>
                         <h1 className="text-3xl font-bold mb-2">
@@ -127,7 +125,6 @@ const Register = () => {
                     </p>
                 </div>
 
-                {/* RIGHT FORM PANEL */}
                 <div className="p-6 sm:p-8 border-l border-white/10 flex flex-col justify-center overflow-y-auto">
                     <h2 className="text-2xl font-semibold mb-2 text-center">
                         Create your ScrutinAI account
@@ -136,7 +133,6 @@ const Register = () => {
                         Start auditing smart contracts with AI-powered security
                     </p>
 
-                    {/* Social buttons */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                         <button onClick={handleGoogleRegister} className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 py-2 rounded text-sm transition">
                             <FaGoogle className="text-[#ea4335]" /> Google

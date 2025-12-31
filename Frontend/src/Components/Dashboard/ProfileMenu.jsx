@@ -92,7 +92,6 @@ const ProfileMenu = ({ user, onLogout, onEditProfile }) => {
 
             {notifOpen && (
                 <div className="absolute right-12 top-12 w-80 bg-slate-900/95 backdrop-blur border border-white/10 rounded-xl shadow-2xl z-50">
-                    {/* Header */}
                     <div className="flex justify-between items-center px-4 py-3 border-b border-white/10">
                         <h4 className="text-sm font-semibold text-white">
                             Notifications
@@ -102,7 +101,6 @@ const ProfileMenu = ({ user, onLogout, onEditProfile }) => {
                         </span>
                     </div>
 
-                    {/* List */}
                     <div className="max-h-72 overflow-y-auto">
                         {notifications.length === 0 && (
                             <p className="text-center text-slate-500 text-sm py-6">

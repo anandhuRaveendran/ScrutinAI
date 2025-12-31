@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaGoogle, FaGithub, FaDiscord } from "react-icons/fa";
-import { useLogin } from "../../../hooks/userRegistration";
-import { useAuth } from "../../../context/AuthContext";
-import { loginSchema } from "../../../validation/loginSchema";
+import { useLogin } from "../../hooks/userRegistration";
+import { useAuth } from "../../context/AuthContext";
+import { loginSchema } from "../../validation/loginSchema";
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Login = () => {
@@ -59,8 +59,6 @@ const Login = () => {
     return (
         <div className="min-h-screen flex items-center justify-center px-4">
             <div className="w-full max-w-md bg-[#0b0f14]/90 backdrop-blur-xl rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/10">
-
-                {/* HEADER */}
                 <div className="text-center mb-6">
                     <h2 className="text-2xl font-semibold">Sign in to your account</h2>
                     <p className="text-sm text-gray-400 mt-1">
@@ -71,9 +69,7 @@ const Login = () => {
                     </p>
                 </div>
 
-                {/* FORM */}
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Email */}
                     <div>
                         <label className="text-sm text-gray-300">Email</label>
                         <input
@@ -89,7 +85,6 @@ const Login = () => {
                         )}
                     </div>
 
-                    {/* Password */}
                     <div>
                         <div className="flex items-center justify-between">
                             <label className="text-sm text-gray-300">Password</label>
@@ -127,7 +122,6 @@ const Login = () => {
                         </p>
                     )}
 
-                    {/* Submit */}
                     <button
                         type="submit"
                         disabled={isLoading}
@@ -137,14 +131,12 @@ const Login = () => {
                     </button>
                 </form>
 
-                {/* DIVIDER */}
                 <div className="flex items-center gap-3 my-6">
                     <div className="flex-1 h-px bg-gray-700" />
                     <span className="text-xs text-gray-400 uppercase">or sign in with</span>
                     <div className="flex-1 h-px bg-gray-700" />
                 </div>
 
-                {/* SOCIAL LOGIN */}
                 <div className="flex gap-3">
                     <button
                         onClick={handleGoogleLogin}

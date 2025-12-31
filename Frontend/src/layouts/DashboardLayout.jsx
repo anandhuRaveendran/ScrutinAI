@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import Navbar from "../Components/Navbar/DashboardNavbar";
 import PreventBackForward from "../utils/PreventBackForward";
 import VideoBackground from "../Components/VideoBackground";
-import ProfileSetupModal from "../Components/Dashboard/ProfileSetupModal";
+import EditProfileModal from "../Components/Modal/EditProfileModal";
 
 const DashboardLayout = () => {
     return (
@@ -13,7 +13,7 @@ const DashboardLayout = () => {
 
             <PreventBackForward />
             <Navbar />
-            <ProfileSetupModal />
+            <EditProfileModal />
 
             <div className="relative z-10">
                 <Outlet />

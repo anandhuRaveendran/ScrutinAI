@@ -4,7 +4,6 @@ import { PieChart, Pie, Cell, Legend, ResponsiveContainer, Tooltip } from "recha
 const COLORS = ["#60A5FA", "#34D399", "#FBBF24", "#F87171", "#93C5FD"];
 
 export default function AuditPie({ data }) {
-    // data example: [{ name: 'Passed', value: 10 }, { name: 'Issues', value: 3 }, ...]
     return (
         <div className="bg-[#0f1724]/60 rounded-xl p-4 shadow-sm">
             <h4 className="text-white font-semibold mb-2">Audit Breakdown</h4>

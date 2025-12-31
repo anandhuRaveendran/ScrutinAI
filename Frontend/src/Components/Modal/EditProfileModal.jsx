@@ -6,12 +6,11 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
-const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose }) => {
+const EditProfileModal = ({ isOpen: externalIsOpen, onClose: externalOnClose }) => {
     const { user, login } = useAuth();
     const [internalIsOpen, setInternalIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    // Determines if modal should be shown (controlled or internal state)
     const showModal = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
 
     const [formData, setFormData] = useState({
@@ -37,7 +36,6 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
         },
     });
 
-    // Close logic
     const handleClose = () => {
         if (externalOnClose) {
             externalOnClose();
@@ -46,14 +44,12 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
         }
     };
 
-    /* OPEN MODAL IF PROFILE NOT COMPLETED (Legacy/Auto Logic) */
     useEffect(() => {
         if (user && user.profileCompleted === false) {
             setInternalIsOpen(true);
         }
     }, [user]);
 
-    /* POPULATE FORM WHEN MODAL OPENS */
     useEffect(() => {
         if (showModal && user) {
             setFormData({
@@ -78,7 +74,6 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
         }
     }, [showModal, user]);
 
-    /* INPUT HANDLING */
     const handleChange = (e) => {
         const { name, value } = e.target;
 
@@ -93,7 +88,6 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
         }
     };
 
-    /* AVATAR UPLOAD (BASE64) */
     const handleAvatarUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -105,7 +99,6 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
         reader.readAsDataURL(file);
     };
 
-    /* SKILLS */
     const handleAddSkill = (e) => {
         if (e.key === "Enter" && formData.skillInput.trim()) {
             e.preventDefault();
@@ -126,7 +119,6 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
         });
     };
 
-    /* CERTIFICATIONS */
     const addCertification = () => {
         setFormData({
             ...formData,
@@ -150,7 +142,6 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
         });
     };
 
-    /* VALIDATION */
     const isFormValid =
         formData.firstName &&
         formData.lastName &&
@@ -158,7 +149,6 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
         formData.about &&
         formData.skills.length > 0;
 
-    /* SUBMIT */
     const handleSubmit = async () => {
         if (!isFormValid) return;
         setLoading(true);
@@ -185,12 +175,10 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
 
     return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
-            {/* BACKDROP CLICK TO CLOSE */}
             <div className="absolute inset-0" onClick={handleClose}></div>
 
             <div className="relative w-full max-w-5xl max-h-[90vh] bg-[#0a0f1c] border border-white/10 rounded-xl shadow-2xl text-white flex flex-col z-10">
 
-                {/* HEADER */}
                 <div className="px-6 py-4 border-b border-white/10 shrink-0 flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-semibold">
@@ -205,12 +193,9 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
                     </button>
                 </div>
 
-                {/* SCROLLABLE BODY */}
                 <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto scrollbar-thin">
 
-                    {/* LEFT COLUMN */}
                     <div className="space-y-5">
-                        {/* Avatar */}
                         <div className="flex flex-col items-center">
                             <div className="w-24 h-24 rounded-full border border-white/10 overflow-hidden bg-gray-900 flex items-center justify-center relative group">
                                 {formData.avatar ? (
@@ -264,10 +249,8 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
                         </div>
                     </div>
 
-                    {/* RIGHT COLUMN */}
                     <div className="lg:col-span-2 space-y-6">
 
-                        {/* SKILLS */}
                         <div>
                             <label className="text-xs text-gray-400">Skills (press Enter)</label>
                             <div className="mt-2 flex flex-wrap gap-2 border border-white/10 bg-white/5 rounded-lg p-3">
@@ -289,7 +272,6 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
                             </div>
                         </div>
 
-                        {/* CERTIFICATIONS */}
                         <div className="space-y-3">
                             <div className="flex justify-between items-center">
                                 <label className="text-xs text-gray-400">Certifications</label>
@@ -343,7 +325,6 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
                         </div>
 
 
-                        {/* SOCIAL LINKS */}
                         <div>
                             <label className="text-xs text-gray-400 mb-2 block">Social Links</label>
                             <div className="grid grid-cols-2 gap-4">
@@ -367,7 +348,6 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
                     </div>
                 </div>
 
-                {/* FOOTER */}
                 <div className="px-6 py-4 border-t border-white/10 flex justify-end shrink-0 bg-[#0a0f1c] rounded-b-xl gap-3">
                     <button
                         onClick={handleClose}
@@ -394,4 +374,4 @@ const ProfileSetupModal = ({ isOpen: externalIsOpen, onClose: externalOnClose })
     );
 };
 
-export default ProfileSetupModal;
+export default EditProfileModal;
