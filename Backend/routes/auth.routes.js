@@ -18,22 +18,24 @@ router.get("/me", (req, res) => {
 
 
 
-/* REGISTER */
-/* REGISTER */
 router.post("/register", async (req, res) => {
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, username, email, password } = req.body;
 
-    if (!email || !password)
-        return res.status(400).json({ error: "Missing fields" });
+    if (!email || !password || !username)
+        return res.status(400).json({ error: "Missing required fields" });
 
-    const exists = await User.findOne({ email });
-    if (exists) return res.status(400).json({ error: "User already exists" });
+    const emailExists = await User.findOne({ email });
+    if (emailExists) return res.status(400).json({ error: "Email already exists" });
+
+    const usernameExists = await User.findOne({ username });
+    if (usernameExists) return res.status(400).json({ error: "Username already taken" });
 
     const hashed = await bcrypt.hash(password, 12);
 
     await User.create({
         firstName,
         lastName,
+        username,
         email,
         password: hashed,
         skills: [],

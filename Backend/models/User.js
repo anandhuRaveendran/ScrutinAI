@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema({
     firstName: String,
     lastName: String,
-    username: String, // Kept for legacy migration
+    username: { type: String, unique: true, sparse: true }, // sparse allows null but enforces uniqueness when set
     email: { type: String, unique: true },
     password: String,
 

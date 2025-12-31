@@ -36,6 +36,20 @@ const splitName = (fullName) => {
     return { firstName, lastName };
 };
 
+/* HELPER TO GENERATE RANDOM USERNAME */
+const generateRandomUsername = async () => {
+    let username;
+    let exists = true;
+
+    while (exists) {
+        const randomNum = Math.floor(100000 + Math.random() * 900000); // 6-digit number
+        username = `user${randomNum}`;
+        exists = await User.findOne({ username });
+    }
+
+    return username;
+};
+
 /* GOOGLE */
 passport.use(
     new GoogleStrategy(
@@ -51,11 +65,13 @@ passport.use(
             if (!user) {
                 const firstName = profile.name?.givenName || splitName(profile.displayName).firstName;
                 const lastName = profile.name?.familyName || splitName(profile.displayName).lastName;
+                const username = await generateRandomUsername();
 
                 user = await User.create({
                     email,
                     firstName,
                     lastName,
+                    username,
                     provider: "google",
                     providerId: profile.id,
                 });
@@ -80,10 +96,13 @@ passport.use(
             let user = await User.findOne({ email });
             if (!user) {
                 const { firstName, lastName } = splitName(profile.displayName || profile.username);
+                const username = await generateRandomUsername();
+
                 user = await User.create({
                     email,
                     firstName,
                     lastName,
+                    username,
                     provider: "github",
                     providerId: profile.id,
                 });
@@ -109,10 +128,13 @@ passport.use(
             let user = await User.findOne({ email });
             if (!user) {
                 const { firstName, lastName } = splitName(profile.global_name || profile.username);
+                const username = await generateRandomUsername();
+
                 user = await User.create({
                     email,
                     firstName,
                     lastName,
+                    username,
                     provider: "discord",
                     providerId: profile.id,
                 });
