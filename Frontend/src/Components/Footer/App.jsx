@@ -2,7 +2,7 @@ import React from "react";
 
 const DashboardFooter = () => {
     return (
-        <footer className="relative z-10 w-screen mt-16">
+        <footer className="relative z-10 w-screen mt-0">
             {/* Top glow line */}
             <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#04d9ff]/50 to-transparent" />
 

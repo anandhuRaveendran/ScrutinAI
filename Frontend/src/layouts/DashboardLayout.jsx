@@ -8,7 +8,7 @@ import DashboardFooter from "../Components/Footer/App";
 
 const DashboardLayout = () => {
     return (
-        <div className="relative min-h-screen overflow-hidden text-white ">
+        <div className="relative min-h-full overflow-hidden text-white flex flex-col">
             <VideoBackground />
             <div className="absolute inset-0 bg-black/20 z-[5] pointer-events-none" />
 
@@ -16,7 +16,7 @@ const DashboardLayout = () => {
             <Navbar />
             <EditProfileModal />
 
-            <div className="relative z-10">
+            <div className="relative z-10 flex-1">
                 <Outlet />
             </div>
             <DashboardFooter />

@@ -1,14 +1,29 @@
+require("dotenv").config();
+
 const express = require("express");
 const isAuth = require("../middleware/isAuth");
-
+const { Ollama } = require("ollama");
 
 const router = express.Router();
 
+/* ============================
+   OLLAMA CLIENT (CLOUD SETUP)
+   ============================ */
+const ollama = new Ollama({
+    host: "https://ollama.com",
+    headers: {
+        Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
+    },
+});
+
+/* ============================
+   AUDIT ROUTE
+   ============================ */
 router.post("/audit", isAuth, async (req, res) => {
     const contractCode = req.body.code;
 
     if (!contractCode) {
-        return res.status(400).json({ error: 'Smart contract code is required.' });
+        return res.status(400).json({ error: "Smart contract code is required." });
     }
 
     console.log(`📝 Received contract for audit (${contractCode.length} chars)`);
@@ -60,86 +75,76 @@ ${contractCode}
 `;
 
     try {
-        console.log('🤖 Sending to OLLAMA...');
+        console.log("🤖 Sending to OLLAMA...");
 
-        // Use streaming to collect full response
         const stream = await ollama.chat({
-            model: 'gpt-oss:120b-cloud',
+            model: "gpt-oss:120b-cloud",
             messages: [
                 {
-                    role: 'system',
-                    content: 'You are a smart contract security auditor. You MUST respond with ONLY valid JSON, with no markdown formatting, no code blocks, and no additional text. The response must be parseable by JSON.parse(). Ensure the JSON is COMPLETE with all closing brackets.'
+                    role: "system",
+                    content:
+                        "You are a smart contract security auditor. You MUST respond with ONLY valid JSON, with no markdown formatting, no code blocks, and no additional text. The response must be parseable by JSON.parse(). Ensure the JSON is COMPLETE with all closing brackets.",
                 },
-                { role: 'user', content: prompt }
+                { role: "user", content: prompt },
             ],
-            stream: true, // Enable streaming
+            stream: true,
             options: {
                 temperature: 0.2,
-                num_predict: 12000, // Higher limit
-            }
+                num_predict: 12000,
+            },
         });
 
-        let aiResult = '';
+        let aiResult = "";
 
-        // Collect all chunks
         for await (const chunk of stream) {
             aiResult += chunk.message.content;
         }
 
-        console.log('✅ Received AI response');
-        console.log('Response length:', aiResult.length);
-        console.log('Raw AI response (first 500 chars):', aiResult.substring(0, 500));
-        console.log('Raw AI response (last 200 chars):', aiResult.substring(aiResult.length - 200));
+        console.log("✅ Received AI response");
+        console.log("Response length:", aiResult.length);
 
-        if (!aiResult || aiResult.trim() === '' || aiResult === '{}') {
-            console.error('❌ Empty response from AI');
+        if (!aiResult || aiResult.trim() === "" || aiResult === "{}") {
             return res.status(500).json({
-                error: 'AI returned empty response',
-                details: 'The model did not generate any output.'
+                error: "AI returned empty response",
             });
         }
 
-        // Clean up the response
-        aiResult = aiResult.trim();
-        aiResult = aiResult.replace(/^```json\s*/i, '');
-        aiResult = aiResult.replace(/^```\s*/i, '');
-        aiResult = aiResult.replace(/\s*```$/i, '');
-        aiResult = aiResult.trim();
+        /* -------- Clean AI Output -------- */
+        aiResult = aiResult
+            .trim()
+            .replace(/^```json\s*/i, "")
+            .replace(/^```\s*/i, "")
+            .replace(/\s*```$/i, "")
+            .trim();
 
-        // Try to parse the JSON
+        /* -------- Parse JSON -------- */
         try {
             const auditData = JSON.parse(aiResult);
-            console.log('✅ Successfully parsed JSON');
-            console.log(`📊 Found ${auditData.vulnerabilities?.length || 0} vulnerabilities`);
 
-            // Validate required fields
-            if (!auditData.riskScore || !auditData.vulnerabilities || !auditData.summary) {
-                console.warn('⚠️ Invalid audit response structure');
-
-                // Try to fix incomplete response
+            if (!auditData.riskScore || !auditData.summary || !auditData.vulnerabilities) {
                 return res.status(200).json({
                     success: true,
                     audit: {
                         riskScore: auditData.riskScore || 5,
-                        status: auditData.status || 'Unknown',
+                        status: auditData.status || "Unknown",
                         summary: auditData.summary || {
                             totalVulnerabilities: 0,
                             critical: 0,
                             high: 0,
                             medium: 0,
                             low: 0,
-                            gasOptimizations: 0
+                            gasOptimizations: 0,
                         },
                         vulnerabilities: auditData.vulnerabilities || [],
                         recommendations: auditData.recommendations || {
-                            immediate: ['Response incomplete - manual review recommended'],
+                            immediate: ["Incomplete AI response – manual review recommended"],
                             bestPractices: [],
-                            longTerm: []
-                        }
+                            longTerm: [],
+                        },
                     },
+                    warning: "Incomplete AI response",
                     timestamp: new Date().toISOString(),
                     contractLength: contractCode.length,
-                    warning: 'Incomplete AI response'
                 });
             }
 
@@ -147,74 +152,48 @@ ${contractCode}
                 success: true,
                 audit: auditData,
                 timestamp: new Date().toISOString(),
-                contractLength: contractCode.length
+                contractLength: contractCode.length,
             });
 
         } catch (parseError) {
-            console.error('❌ JSON Parse Error:', parseError.message);
-            console.error('Parse error at position:', parseError.message.match(/\d+/)?.[0]);
-
-            // Try to extract partial valid JSON
-            let partialData = null;
-
-            // Attempt to find the last complete vulnerability
-            try {
-                const lastCompleteVulnIndex = aiResult.lastIndexOf('    },');
-                if (lastCompleteVulnIndex > 0) {
-                    const truncated = aiResult.substring(0, lastCompleteVulnIndex + 6) + '\n  ],\n  "recommendations": {\n    "immediate": ["Response was truncated - review may be incomplete"],\n    "bestPractices": [],\n    "longTerm": []\n  }\n}';
-                    partialData = JSON.parse(truncated);
-                    console.log('✅ Successfully parsed truncated response');
-                }
-            } catch (fixError) {
-                console.error('Could not fix truncated JSON');
-            }
-
-            if (partialData) {
-                return res.status(200).json({
-                    success: true,
-                    audit: partialData,
-                    timestamp: new Date().toISOString(),
-                    contractLength: contractCode.length,
-                    warning: 'Response was truncated but partially recovered'
-                });
-            }
+            console.error("❌ JSON Parse Error:", parseError.message);
 
             return res.status(200).json({
                 success: true,
                 audit: {
                     riskScore: 5,
-                    status: 'Unknown',
+                    status: "Unknown",
                     summary: {
                         totalVulnerabilities: 0,
                         critical: 0,
                         high: 0,
                         medium: 0,
                         low: 0,
-                        gasOptimizations: 0
+                        gasOptimizations: 0,
                     },
                     vulnerabilities: [],
                     recommendations: {
-                        immediate: ['AI response format error - manual review required'],
-                        bestPractices: ['Error: ' + parseError.message],
-                        longTerm: []
+                        immediate: ["AI response format error – manual review required"],
+                        bestPractices: [parseError.message],
+                        longTerm: [],
                     },
-                    rawReport: aiResult.substring(0, 1000) // First 1000 chars for debugging
+                    rawReport: aiResult.substring(0, 1000),
                 },
+                parseError: true,
                 timestamp: new Date().toISOString(),
                 contractLength: contractCode.length,
-                parseError: true
             });
         }
 
     } catch (err) {
-        console.error('❌ Error during audit:', err);
-
+        console.error("❌ Error during audit:", err);
         return res.status(500).json({
-            error: 'Failed to audit contract',
-            details: err.message || 'Unknown error occurred'
+            error: "Failed to audit contract",
+            details: err.message || "Unknown error occurred",
         });
     }
 });
+
 
 router.post("/generate-pdf", isAuth, async (req, res) => {
 

@@ -11,7 +11,7 @@ export default function Dashboard() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
+    <div className="min-h-full bg-gray-950 text-gray-100 pb-10">
       <div className="max-w-7xl mx-auto px-4 py-6">
 
         {/* Top Bar */}
