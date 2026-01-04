@@ -3,6 +3,8 @@ require("dotenv").config();
 const express = require("express");
 const isAuth = require("../middleware/isAuth");
 const { Ollama } = require("ollama");
+const puppeteer = require("puppeteer");
+const { escapeHtml, buildReportHTML } = require("../utils/pdf");
 
 const router = express.Router();
 
@@ -205,41 +207,136 @@ router.post("/generate-pdf", isAuth, async (req, res) => {
         if (!html && auditData) {
             const summary = auditData.summary || {};
             const vulnerabilities = auditData.vulnerabilities || [];
-            const vulnHtml = vulnerabilities.map(v => `
-        <div class="vulnerability ${v.severity?.toLowerCase() || ''}">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <h3>${escapeHtml(v.name || 'Unnamed Issue')}</h3>
-              <div style="color:#6b7280; font-size:13px;">${escapeHtml(v.location || '')}</div>
-            </div>
-            <div>
-              <span class="badge ${v.severity === 'Critical' ? 'badge-critical' : v.severity === 'High' ? 'badge-high' : v.severity === 'Medium' ? 'badge-medium' : 'badge-low'}">${escapeHtml(v.severity || '')}</span>
-            </div>
-          </div>
-          <div style="margin-top:10px; font-size:13px; color:#374151;">
-            <div><strong>Attack Vector:</strong> ${escapeHtml(v.vector || 'N/A')}</div>
-            <div style="margin-top:6px;"><strong>Impact:</strong> ${escapeHtml(v.impact || 'N/A')}</div>
-            <div style="margin-top:6px;"><strong>Remediation:</strong> ${escapeHtml(v.remediation || 'N/A')}</div>
-            ${v.vulnerableCode ? `<div style="margin-top:8px;"><strong>Vulnerable Code:</strong><pre>${escapeHtml(v.vulnerableCode)}</pre></div>` : ''}
-            ${v.fixedCode ? `<div style="margin-top:8px;"><strong>Fixed Code:</strong><pre>${escapeHtml(v.fixedCode)}</pre></div>` : ''}
-          </div>
-        </div>
-      `).join('\n');
+            const recommendations = auditData.recommendations || {};
 
+            // Generate Vulnerabilities HTML
+            const vulnHtml = vulnerabilities.length > 0
+                ? vulnerabilities.map((v, idx) => `
+                    <div class="vulnerability ${v.severity?.toLowerCase() || ''}">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                        <div>
+                          <h3 style="margin:0;">#${idx + 1} ${escapeHtml(v.name || 'Unnamed Issue')}</h3>
+                          ${v.location ? `<div style="color:#6b7280; font-size:13px; margin-top:5px;">📍 ${escapeHtml(v.location)}</div>` : ''}
+                        </div>
+                        <div>
+                          <span class="badge ${v.severity === 'Critical' ? 'badge-critical' : v.severity === 'High' ? 'badge-high' : v.severity === 'Medium' ? 'badge-medium' : 'badge-low'}">${escapeHtml(v.severity || 'Unknown')}</span>
+                        </div>
+                      </div>
+                      <div style="margin-top:15px; font-size:13px; color:#374151;">
+                        ${v.vector ? `<div style="margin-bottom:10px;"><strong style="color:#04d9ff;">⚔️ Attack Vector:</strong> ${escapeHtml(v.vector)}</div>` : ''}
+                        ${v.impact ? `<div style="margin-bottom:10px;"><strong style="color:#dc2626;">💥 Impact:</strong> ${escapeHtml(v.impact)}</div>` : ''}
+                        ${v.remediation ? `<div style="margin-bottom:10px;"><strong style="color:#10b981;">✅ Remediation:</strong> ${escapeHtml(v.remediation)}</div>` : ''}
+                        ${v.vulnerableCode ? `
+                          <div style="margin-top:15px;">
+                            <div style="background:#fef2f2; border:1px solid #fecaca; padding:8px; border-radius:6px; margin-bottom:8px;">
+                              <strong style="color:#dc2626; font-size:12px;">❌ Vulnerable Code:</strong>
+                            </div>
+                            <pre>${escapeHtml(v.vulnerableCode)}</pre>
+                          </div>
+                        ` : ''}
+                        ${v.fixedCode ? `
+                          <div style="margin-top:15px;">
+                            <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:8px; border-radius:6px; margin-bottom:8px;">
+                              <strong style="color:#10b981; font-size:12px;">✅ Fixed Code:</strong>
+                            </div>
+                            <pre>${escapeHtml(v.fixedCode)}</pre>
+                          </div>
+                        ` : ''}
+                        ${v.references && v.references.length > 0 ? `
+                          <div style="margin-top:15px; padding-top:15px; border-top:1px solid #e5e7eb;">
+                            <strong style="color:#04d9ff; font-size:12px;">📚 References:</strong>
+                            <ul style="margin-top:8px; padding-left:20px;">
+                              ${v.references.map(ref => `<li style="margin:5px 0;">${escapeHtml(ref)}</li>`).join('')}
+                            </ul>
+                          </div>
+                        ` : ''}
+                      </div>
+                    </div>
+                  `).join('\n')
+                : '<div style="text-align:center; padding:40px; background:#f0fdf4; border-radius:10px; color:#10b981;"><h3 style="color:#10b981; margin-bottom:10px;">✨ No vulnerabilities detected</h3><p style="color:#374151;">This contract appears to be secure based on AI analysis.</p></div>';
+
+            // Generate Recommendations HTML
+            const recHtml = [];
+
+            if (recommendations.immediate && recommendations.immediate.length > 0) {
+                recHtml.push(`
+                    <div class="recommendation-section rec-immediate">
+                        <h3 style="color:#dc2626;">🚨 Immediate Actions Required</h3>
+                        <ul>
+                            ${recommendations.immediate.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+                        </ul>
+                    </div>
+                `);
+            }
+
+            if (recommendations.bestPractices && recommendations.bestPractices.length > 0) {
+                recHtml.push(`
+                    <div class="recommendation-section rec-best">
+                        <h3 style="color:#f59e0b;">⚡ Best Practices</h3>
+                        <ul>
+                            ${recommendations.bestPractices.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+                        </ul>
+                    </div>
+                `);
+            }
+
+            if (recommendations.longTerm && recommendations.longTerm.length > 0) {
+                recHtml.push(`
+                    <div class="recommendation-section rec-longterm">
+                        <h3 style="color:#04d9ff;">🎯 Long-term Improvements</h3>
+                        <ul>
+                            ${recommendations.longTerm.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+                        </ul>
+                    </div>
+                `);
+            }
+
+            const recommendationsSection = recHtml.length > 0
+                ? recHtml.join('\n')
+                : '<div style="text-align:center; padding:40px; background:#f0fdf4; border-radius:10px;"><h3 style="color:#10b981; margin-bottom:10px;">✅ No specific recommendations</h3><p style="color:#374151;">The contract follows good security practices.</p></div>';
+
+            // Build complete HTML
             html = `
-        <div>
-          <h2>Overview</h2>
-          <div class="stats-grid">
-            <div class="stat-card"><div class="stat-number">${summary.totalVulnerabilities || 0}</div><div class="stat-label">Total Issues</div></div>
-            <div class="stat-card"><div class="stat-number">${summary.critical || 0}</div><div class="stat-label">Critical</div></div>
-            <div class="stat-card"><div class="stat-number">${summary.high || 0}</div><div class="stat-label">High</div></div>
-            <div class="stat-card"><div class="stat-number">${summary.medium || 0}</div><div class="stat-label">Medium</div></div>
-            <div class="stat-card"><div class="stat-number">${summary.low || 0}</div><div class="stat-label">Low</div></div>
-          </div>
-          <h2>Vulnerabilities</h2>
-          ${vulnHtml || '<div>No vulnerabilities detected</div>'}
-        </div>
-      `;
+                <div>
+                  <h2>📊 Overview</h2>
+                  <div class="stats-grid">
+                    <div class="stat-card">
+                      <div class="stat-number">${summary.totalVulnerabilities || 0}</div>
+                      <div class="stat-label">Total Issues</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-number" style="color:#dc2626;">${summary.critical || 0}</div>
+                      <div class="stat-label">Critical</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-number" style="color:#ea580c;">${summary.high || 0}</div>
+                      <div class="stat-label">High</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-number" style="color:#ca8a04;">${summary.medium || 0}</div>
+                      <div class="stat-label">Medium</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-number" style="color:#04d9ff;">${summary.low || 0}</div>
+                      <div class="stat-label">Low</div>
+                    </div>
+                  </div>
+                  
+                  ${auditData.riskScore !== undefined ? `
+                    <div style="background:#f9fafb; padding:20px; border-radius:10px; margin:20px 0; text-align:center;">
+                      <div style="font-size:14px; color:#6b7280; margin-bottom:10px;">Overall Risk Score</div>
+                      <div style="font-size:48px; font-weight:bold; color:${auditData.riskScore >= 7 ? '#dc2626' : auditData.riskScore >= 4 ? '#f59e0b' : '#10b981'};">${auditData.riskScore}/10</div>
+                      <div style="font-size:18px; font-weight:600; margin-top:10px; color:${auditData.riskScore >= 7 ? '#dc2626' : auditData.riskScore >= 4 ? '#f59e0b' : '#10b981'};">${auditData.status || 'Unknown'}</div>
+                    </div>
+                  ` : ''}
+                  
+                  <h2>🔍 Vulnerabilities</h2>
+                  ${vulnHtml}
+                  
+                  <h2>💡 Recommendations</h2>
+                  ${recommendationsSection}
+                </div>
+            `;
         }
 
         const fullHtml = buildReportHTML({ title: 'Smart Contract Audit Report', htmlContent: html, generatedAt: auditData?.timestamp || Date.now() });

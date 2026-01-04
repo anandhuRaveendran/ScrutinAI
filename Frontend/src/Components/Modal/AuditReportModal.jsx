@@ -7,7 +7,7 @@ const SeverityBadge = ({ severity }) => {
     Critical: 'bg-red-600',
     High: 'bg-orange-500',
     Medium: 'bg-yellow-500',
-    Low: 'bg-blue-500'
+    Low: 'bg-[#04d9ff]'
   };
 
   return (
@@ -68,7 +68,7 @@ const VulnerabilityCard = ({ vuln, index }) => {
   const [showCode, setShowCode] = useState(false);
 
   return (
-    <div className="bg-[#0f172a] rounded-lg p-4 mb-3 border border-gray-700 hover:border-blue-500 transition-all">
+    <div className="bg-[#0f172a] rounded-lg p-4 mb-3 border border-gray-700 hover:border-[#04d9ff] transition-all">
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center gap-2">
           <span className="text-xl font-bold text-gray-500">#{index + 1}</span>
@@ -84,7 +84,7 @@ const VulnerabilityCard = ({ vuln, index }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
-          <div className="text-xs font-semibold text-blue-400 mb-1">⚔️ Attack Vector</div>
+          <div className="text-xs font-semibold text-[#04d9ff] mb-1">⚔️ Attack Vector</div>
           <p className="text-xs text-gray-300">{vuln.vector}</p>
         </div>
         <div>
@@ -102,7 +102,7 @@ const VulnerabilityCard = ({ vuln, index }) => {
         <>
           <button
             onClick={() => setShowCode(!showCode)}
-            className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-xs font-semibold"
+            className="flex items-center gap-2 text-[#04d9ff] hover:text-[#06f0ff] text-xs font-semibold"
           >
             <Code size={14} />
             {showCode ? 'Hide' : 'Show'} Code Comparison
@@ -133,7 +133,7 @@ const VulnerabilityCard = ({ vuln, index }) => {
 
       {vuln.references && vuln.references.length > 0 && (
         <div className="mt-3 pt-3 border-t border-gray-700">
-          <div className="text-xs font-semibold text-purple-400 mb-1">📚 References</div>
+          <div className="text-xs font-semibold text-[#04d9ff] mb-1">📚 References</div>
           <ul className="text-xs text-gray-400 space-y-1">
             {vuln.references.map((ref, idx) => (
               <li key={idx}>• {ref}</li>
@@ -163,20 +163,20 @@ const downloadPDF = (reportRef) => {
             line-height: 1.6;
           }
           h1 { 
-            color: #1e40af; 
-            border-bottom: 4px solid #3b82f6;
+            color: #04d9ff; 
+            border-bottom: 4px solid #04d9ff;
             padding-bottom: 15px;
             margin-bottom: 20px;
             font-size: 32px;
           }
           h2 { 
-            color: #3b82f6; 
+            color: #04d9ff; 
             margin-top: 40px;
             margin-bottom: 20px;
             font-size: 24px;
           }
           h3 { 
-            color: #6366f1;
+            color: #04d9ff;
             margin-top: 20px;
             margin-bottom: 10px;
             font-size: 18px;
@@ -203,7 +203,7 @@ const downloadPDF = (reportRef) => {
           .stat-number {
             font-size: 36px;
             font-weight: bold;
-            color: #3b82f6;
+            color: #04d9ff;
             display: block;
             margin-bottom: 8px;
           }
@@ -225,7 +225,7 @@ const downloadPDF = (reportRef) => {
           .critical { border-left: 6px solid #dc2626; }
           .high { border-left: 6px solid #ea580c; }
           .medium { border-left: 6px solid #ca8a04; }
-          .low { border-left: 6px solid #2563eb; }
+          .low { border-left: 6px solid #04d9ff; }
           pre { 
             background: #f3f4f6; 
             padding: 15px; 
@@ -251,7 +251,7 @@ const downloadPDF = (reportRef) => {
           .badge-critical { background: #dc2626; }
           .badge-high { background: #ea580c; }
           .badge-medium { background: #ca8a04; }
-          .badge-low { background: #2563eb; }
+          .badge-low { background: #04d9ff; }
           .recommendation-box {
             padding: 20px;
             margin: 20px 0;
@@ -267,8 +267,8 @@ const downloadPDF = (reportRef) => {
             border-left-color: #f59e0b; 
           }
           .rec-longterm { 
-            background: #eff6ff; 
-            border-left-color: #3b82f6; 
+            background: #e0f9ff; 
+            border-left-color: #04d9ff; 
           }
           .vuln-section {
             margin-bottom: 15px;
@@ -324,17 +324,32 @@ const downloadPDF = (reportRef) => {
 export default function AuditReportModal({ open, onClose, report }) {
   const [fullscreen, setFullscreen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isDownloading, setIsDownloading] = useState(false);
   const reportRef = useRef();
 
   const handleDownloadPDF = async () => {
     try {
-      // Option A: send pre-rendered HTML from reportRef
-      const htmlContent = reportRef.current?.innerHTML; // ensure full content exists
-      // Option B: send structured auditData (server converts it)
-      await downloadReportPdfServer({ htmlContent, auditData: report });
+      setIsDownloading(true);
+
+      // Get audit data from report
+      const auditData = report.audit || report;
+
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().split('T')[0];
+      const fileName = `audit-report-${timestamp}.pdf`;
+
+      // Call the PDF generation API
+      await downloadReportPdfServer({
+        auditData,
+        fileName
+      });
+
+      console.log('✅ PDF downloaded successfully');
     } catch (err) {
-      console.error(err);
+      console.error('❌ PDF Download Error:', err);
       alert('Failed to download PDF: ' + err.message);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -369,7 +384,7 @@ export default function AuditReportModal({ open, onClose, report }) {
           <div className="border-t border-gray-700 p-4 flex justify-end">
             <button
               onClick={onClose}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              className="px-6 py-2 bg-[#04d9ff] hover:bg-[#03b8d9] text-black font-semibold rounded-lg transition-colors"
             >
               Close
             </button>
@@ -387,12 +402,12 @@ export default function AuditReportModal({ open, onClose, report }) {
         `}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-xl p-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#04d9ff] to-[#0ea5e9] rounded-t-xl p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Shield className="w-8 h-8" />
             <div>
               <h1 className="text-xl font-bold">Smart Contract Audit Report</h1>
-              <p className="text-blue-100 text-xs">AI-Powered Security Analysis</p>
+              <p className="text-black/70 text-xs font-medium">AI-Powered Security Analysis</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -405,10 +420,24 @@ export default function AuditReportModal({ open, onClose, report }) {
             </button>
             <button
               onClick={handleDownloadPDF}
-              className="flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-sm"
+              disabled={isDownloading}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm ${isDownloading
+                ? 'bg-white/10 cursor-not-allowed opacity-50'
+                : 'bg-white/20 hover:bg-white/30'
+                }`}
+              title={isDownloading ? 'Generating PDF...' : 'Download PDF'}
             >
-              <Download size={18} />
-              PDF
+              {isDownloading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Download size={18} />
+                  PDF
+                </>
+              )}
             </button>
             <button
               onClick={onClose}
@@ -427,7 +456,7 @@ export default function AuditReportModal({ open, onClose, report }) {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 text-sm font-semibold rounded-t-lg transition-all whitespace-nowrap ${activeTab === tab
-                ? 'bg-blue-600 text-white'
+                ? 'bg-[#04d9ff] text-black'
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                 }`}
             >
@@ -465,7 +494,7 @@ export default function AuditReportModal({ open, onClose, report }) {
               {/* Summary Stats */}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                 <div className="bg-[#0f172a] rounded-lg p-3 text-center border border-gray-700">
-                  <div className="text-2xl font-bold text-blue-400">{auditData.summary?.totalVulnerabilities || 0}</div>
+                  <div className="text-2xl font-bold text-[#04d9ff]">{auditData.summary?.totalVulnerabilities || 0}</div>
                   <div className="text-xs text-gray-400 mt-1">Total Issues</div>
                 </div>
                 <div className="bg-[#0f172a] rounded-lg p-3 text-center border border-red-500">
@@ -480,8 +509,8 @@ export default function AuditReportModal({ open, onClose, report }) {
                   <div className="text-2xl font-bold text-yellow-400">{auditData.summary?.medium || 0}</div>
                   <div className="text-xs text-gray-400 mt-1">Medium</div>
                 </div>
-                <div className="bg-[#0f172a] rounded-lg p-3 text-center border border-blue-500">
-                  <div className="text-2xl font-bold text-blue-400">{auditData.summary?.low || 0}</div>
+                <div className="bg-[#0f172a] rounded-lg p-3 text-center border border-[#04d9ff]">
+                  <div className="text-2xl font-bold text-[#04d9ff]">{auditData.summary?.low || 0}</div>
                   <div className="text-xs text-gray-400 mt-1">Low</div>
                 </div>
               </div>
@@ -506,7 +535,7 @@ export default function AuditReportModal({ open, onClose, report }) {
                       { severity: 'Critical', count: auditData.summary.critical, color: 'bg-red-500' },
                       { severity: 'High', count: auditData.summary.high, color: 'bg-orange-500' },
                       { severity: 'Medium', count: auditData.summary.medium, color: 'bg-yellow-500' },
-                      { severity: 'Low', count: auditData.summary.low, color: 'bg-blue-500' }
+                      { severity: 'Low', count: auditData.summary.low, color: 'bg-[#04d9ff]' }
                     ].map(item => {
                       const percentage = auditData.summary.totalVulnerabilities > 0
                         ? (item.count / auditData.summary.totalVulnerabilities) * 100
@@ -588,11 +617,11 @@ export default function AuditReportModal({ open, onClose, report }) {
               )}
 
               {auditData.recommendations?.longTerm && auditData.recommendations.longTerm.length > 0 && (
-                <div className="bg-[#0f172a] rounded-lg p-4 border-l-4 border-blue-500">
+                <div className="bg-[#0f172a] rounded-lg p-4 border-l-4 border-[#04d9ff]">
                   <div className="flex items-start gap-3">
-                    <Shield className="text-blue-500 w-5 h-5 mt-1 flex-shrink-0" />
+                    <Shield className="text-[#04d9ff] w-5 h-5 mt-1 flex-shrink-0" />
                     <div>
-                      <h3 className="text-md font-bold text-blue-400 mb-2">🎯 Long-term Improvements</h3>
+                      <h3 className="text-md font-bold text-[#04d9ff] mb-2">🎯 Long-term Improvements</h3>
                       <ul className="space-y-1 text-sm text-gray-300">
                         {auditData.recommendations.longTerm.map((item, idx) => (
                           <li key={idx}>• {item}</li>

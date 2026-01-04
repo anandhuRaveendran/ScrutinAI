@@ -19,7 +19,7 @@ const Navbar = () => {
         } finally {
             localStorage.clear();
             sessionStorage.clear();
-            navigate("/login", { replace: true });
+            navigate("/", { replace: true });
         }
     };
 

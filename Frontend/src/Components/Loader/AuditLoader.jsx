@@ -23,13 +23,13 @@ const FullScreenLoader = ({
         ">
 
                     {/* Icon */}
-                    <div className="relative flex items-center justify-center">
+                    <div className="relative flex items-center justify-center mb-3">
                         <div className="absolute w-16 h-16 rounded-full border-2 border-[#04d9ff]/30 animate-spin-slow" />
                         <ShieldCheck className="w-8 h-8 text-[#04d9ff]" />
                     </div>
 
                     {/* Spinner */}
-                    <Loader2 className="w-7 h-7 animate-spin text-white/90" />
+                    <Loader2 className="w-7 h-7 animate-spin text-white/90 " />
 
                     {/* Text */}
                     <p className="text-white text-sm font-medium text-center">

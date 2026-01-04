@@ -23,8 +23,8 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <Routes>
 
           <Route element={<AuthLayout />}>
@@ -88,8 +88,8 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
 
         </Routes>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   </QueryClientProvider>
 );
 

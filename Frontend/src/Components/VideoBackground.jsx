@@ -33,42 +33,55 @@ const VideoBackground = ({
       return;
     }
 
+    const hlsUrlAbsolute = new URL(hlsUrl, window.location.href).href;
+
     // Safari (iOS/mac) supports HLS natively
     const canPlayHlsNatively = video.canPlayType("application/vnd.apple.mpegurl");
 
     // Helper: try to play muted (autoplay policy)
     const tryPlay = async () => {
       try {
-        await video.play();
-        console.log("[VideoBackground] video.play() succeeded");
+        if (video.paused) {
+          await video.play();
+          // console.log("[VideoBackground] video.play() succeeded");
+        }
       } catch (err) {
-        console.warn("[VideoBackground] autoplay blocked:", err);
+        if (err.name !== "AbortError") {
+          console.warn("[VideoBackground] autoplay blocked:", err);
+        }
       }
     };
 
+    // 1. Native HLS Support (Safari)
     if (canPlayHlsNatively) {
-      console.log("[VideoBackground] native HLS support detected (Safari). Setting src to HLS URL.");
-      video.src = hlsUrl;
+      // Avoid resetting src if it hasn't changed (prevents AbortError in Strict Mode)
+      if (video.src !== hlsUrlAbsolute) {
+        console.log("[VideoBackground] native HLS support detected (Safari). Setting src to HLS URL.");
+        video.src = hlsUrl;
+        video.load();
+      }
       tryPlay();
-      return;
+
+      return () => {
+        // No specific cleanup needed for native src, but we can pause to be safe
+        // video.pause();
+      };
     }
 
-    // Use hls.js for other browsers
+    // 2. HLS.js Support (Chrome, Firefox, Edge)
+    let hls = null;
     if (Hls.isSupported()) {
-      const hls = new Hls({
-        // optional tuning
+      hls = new Hls({
         maxBufferLength: 30,
         debug: false,
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
-        console.error("[VideoBackground] hls.js error", event, data);
-        // on fatal error, fallback to test MP4/preset poster
         if (data && data.fatal) {
           console.warn("[VideoBackground] fatal error from hls.js — destroying and falling back to MP4");
           try {
             hls.destroy();
-          } catch (e) {}
+          } catch (e) { }
           setUsingFallback(true);
           video.src = TEST_MP4;
           tryPlay();
@@ -77,27 +90,27 @@ const VideoBackground = ({
 
       hls.attachMedia(video);
       hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-        console.log("[VideoBackground] MEDIA_ATTACHED -> loading source:", hlsUrl);
         hls.loadSource(hlsUrl);
       });
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        console.log("[VideoBackground] MANIFEST_PARSED -> starting playback (muted)");
         tryPlay();
       });
 
-      // Clean up
+      // Cleanup function specifically for HLS.js instance
       return () => {
-        try {
+        if (hls) {
           hls.destroy();
-        } catch (e) {}
+        }
       };
     }
 
-    // Last fallback: set the video src directly to the HLS URL (likely won't play)
+    // 3. Last fallback (direct src)
     console.warn("[VideoBackground] hls.js not supported and not native HLS. Setting src directly to", hlsUrl);
     video.src = hlsUrl;
     tryPlay();
+
+    return () => { }; // No-op cleanup
   }, [hlsUrl]);
 
   // Add event listeners for debugging

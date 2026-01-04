@@ -74,6 +74,7 @@ app.listen(PORT, () => {
 ║                                                       ║
 ║  Endpoints:                                           ║
 ║  POST /audit/audit      - Full contract audit         ║
+║  POST /audit/generate-pdf - Generate PDF report       ║
 ║  POST /audit/quick-scan - Quick security scan         ║
 ║  GET  /health           - Health check & models       ║
 ║  POST /auth/register    - User registration           ║
